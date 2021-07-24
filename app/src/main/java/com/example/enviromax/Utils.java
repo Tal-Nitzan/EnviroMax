@@ -5,8 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.Window;
 import android.view.WindowManager;
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
 public class Utils {
