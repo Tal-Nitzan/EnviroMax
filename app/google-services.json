@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1004105069852",
+    "firebase_url": "https://enviromax-8ead5-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "enviromax-8ead5",
+    "storage_bucket": "enviromax-8ead5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1004105069852:android:eeefd051febd3d3ce5f6d9",
+        "android_client_info": {
+          "package_name": "com.example.enviromax"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1004105069852-37c6o6n3vnao2edc4jc6j3mftf845efg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.enviromax",
+            "certificate_hash": "4c29a67e65cb48d3c865718d6ff89c6d3049efea"
+          }
+        },
+        {
+          "client_id": "1004105069852-67nfslol20kav8u8a52d0ljo232l33rs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBn-JQxTbLU_roCSaKvWhJqUxdN0guYHVo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1004105069852-67nfslol20kav8u8a52d0ljo232l33rs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

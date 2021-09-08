@@ -16,14 +16,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
+    private static int numOfActiveDevices = 0;
+    private ArrayList<Device> deviceArrayList;
 
     // Make sure to be using androidx.appcompat.app.ActionBarDrawerToggle version.
     private ActionBarDrawerToggle drawerToggle;
@@ -45,8 +52,33 @@ public class MainActivity extends AppCompatActivity {
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerToggle = setupDrawerToggle();
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
+
+        Utils.initDevices();
         // Setup drawer view
         setupDrawerContent(nvDrawer);
+
+        // Start in Fragment_Home view.
+        showFragment(Fragment_Home.class, getResources().getString(R.string.home));
+    }
+
+    public static void setNumOfActiveDevices(int numOfActiveDevices) {
+        MainActivity.numOfActiveDevices = numOfActiveDevices;
+    }
+
+    public static int getNumOfActiveDevices() {
+        return MainActivity.numOfActiveDevices;
+    }
+
+    private void showFragment(Class theFragment, String title) {
+        Fragment fragment = null;
+        try {
+            fragment = (Fragment) theFragment.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.flContent, fragment).commit();
+        setTitle(title);
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
@@ -88,12 +120,15 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    public void selectDrawerItem(MenuItem menuItem) {
+    public void selectDrawerItem(MenuItem menuItem) { // TODO save state
         // Create a new fragment and specify the fragment to show based on nav item clicked
         Fragment fragment = null;
         Class fragmentClass;
         boolean logOut = false;
         switch(menuItem.getItemId()) {
+            case R.id.nav_home_fragment:
+                fragmentClass = Fragment_Home.class;
+                break;
             case R.id.nav_map_fragment:
                 fragmentClass = Fragment_Map.class;
                 break;
@@ -102,31 +137,16 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.nav_logOut:
                 logOut = true;
-                fragmentClass = Activity_Splash.class;
+                fragmentClass = Activity_Login.class;
                 break;
             default:
                 fragmentClass = Fragment_Map.class;
         }
 
-        try {
-            fragment = (Fragment) fragmentClass.newInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         if (logOut) {
             Utils.logout(this);
         } else {
-
-            // Insert the fragment by replacing any existing fragment
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().replace(R.id.flContent, fragment).commit();
-
-            // Highlight the selected item has been done by NavigationView
-            menuItem.setChecked(true);
-            // Set action bar title
-            setTitle(menuItem.getTitle());
-            // Close the navigation drawer
+            showFragment(fragmentClass, (String)menuItem.getTitle());
             mDrawer.closeDrawers();
         }
     }

@@ -8,6 +8,7 @@
     <string name="list_deliveries">Delivery List</string>
     <string name="completed">Completed</string>
     <string name="canceled">Canceled</string>
+    <string name="home">Home</string>
     <string name="map">Map</string>
     <string name="personal_details">Personal Details</string>
     <string name="log_off">Log off</string>

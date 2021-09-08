@@ -13,6 +13,8 @@ import android.view.animation.AccelerateInterpolator;
 import android.widget.ImageView;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class Activity_Splash extends AppCompatActivity {
 
@@ -74,8 +76,18 @@ public class Activity_Splash extends AppCompatActivity {
         splash_BTN_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent myIntent = new Intent(Activity_Splash.this, MainActivity.class);
+                FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                Intent myIntent;
+
+                if (user != null) {
+                    myIntent = new Intent(Activity_Splash.this, MainActivity.class);
+                } else {
+                    myIntent = new Intent(Activity_Splash.this, Activity_Login.class);
+                }
                 startActivity(myIntent);
+                finish();
             }
         });
     }
