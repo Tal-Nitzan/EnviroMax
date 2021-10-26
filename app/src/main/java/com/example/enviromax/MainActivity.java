@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
+    private int x;
     private static int numOfActiveDevices = 0;
     private ArrayList<Device> deviceArrayList;
 
