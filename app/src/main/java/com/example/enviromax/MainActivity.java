@@ -27,7 +27,6 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawer;
-    private int x;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
     private static int numOfActiveDevices = 0;
