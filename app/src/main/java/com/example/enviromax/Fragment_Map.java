@@ -34,9 +34,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
+import com.google.maps.android.heatmaps.WeightedLatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,12 +49,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.concurrent.Executor;
 
 public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMapReadyCallback {
 
     private GoogleMap m_googleMap;
     private boolean firstLocationUpdateFlag = false;
+    private FusedLocationProviderClient fusedLocationClient;
 
+    float[] startpoints = {
+            0.1F, 0.2F, 0.3F, 0.4F, 0.6F, 1.0F
+    };
+
+    int[] colors = {
+            Color.GREEN,    // green(0-50)
+            Color.YELLOW,    // yellow(51-100)
+            Color.rgb(255,165,0), //Orange(101-150)
+            Color.RED,              //red(151-200)
+            Color.rgb(153,50,204), //dark orchid(201-300)
+            Color.rgb(165,42,42) //brown(301-500)
+    };
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 1;
     private void checkLocationPermission() {
@@ -85,42 +101,9 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         }
     }
 
-    // Add Heat Map Layer
-    private void addHeatMap() {
-        List<LatLng> latLngs = null;
-
-        // Get the data: latitude/longitude positions of police stations.  TODO : get the values from the database.
-        try {
-            latLngs = readItems(R.raw.police_stations);
-        } catch (JSONException e) {
-            Toast.makeText(getContext(), "Problem reading list of locations.", Toast.LENGTH_LONG).show();
-        }
-
-        int[] colors = {
-                Color.rgb(0, 255, 0), // green
-                Color.rgb(255, 0, 0)    // red
-        };
-
-        float[] startPoints = {
-                0.2f, 1f
-        };
-
-        Gradient gradient = new Gradient(colors, startPoints);
-
-        // Create a heat map tile provider, passing it the latlngs of the police stations.
-        HeatmapTileProvider provider = new HeatmapTileProvider.Builder()
-                .data(latLngs)
-                .gradient(gradient)
-                .radius(30)
-                .opacity(0.9)
-                .build();
-
-        // Add a tile overlay to the map, using the heat map tile provider.
-        TileOverlay overlay = m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
-    }
-
-    private List<LatLng> readItems(@RawRes int resource) throws JSONException {
-        List<LatLng> result = new ArrayList<>();
+    private List<WeightedLatLng> readWeightedItems(@RawRes int resource) throws JSONException {
+        // TODO read from database
+        List<WeightedLatLng> result = new ArrayList<>();
         InputStream inputStream = getContext().getResources().openRawResource(resource);
         String json = new Scanner(inputStream).useDelimiter("\\A").next();
         JSONArray array = new JSONArray(json);
@@ -128,7 +111,8 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
             JSONObject object = array.getJSONObject(i);
             double lat = object.getDouble("lat");
             double lng = object.getDouble("lng");
-            result.add(new LatLng(lat, lng));
+            double intensity = object.getDouble("intensity");
+            result.add(new WeightedLatLng(new LatLng(lat, lng), intensity));
         }
         return result;
     }
@@ -144,6 +128,7 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
@@ -160,7 +145,35 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
             return;
         }
         m_googleMap.setMyLocationEnabled(true);
-        addHeatMap();
+        // Focus on current location.
+        if (m_googleMap != null) {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(getActivity(), new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            // Got last known location. In some rare situations this can be null.
+                            if (location != null) {
+                                m_googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13f));
+                            }
+                        }
+                    });
+        }
+        addHeatMapWeighted();
 
+
+    }
+
+    public void addHeatMapWeighted() {
+        Gradient gradient = new Gradient(colors, startpoints);
+        List<WeightedLatLng> weightedLatLngs = null;
+        try {
+            weightedLatLngs = readWeightedItems(R.raw.police_stations);
+        } catch (JSONException e) {
+            Toast.makeText(getContext(), "Unable to read heatmap locations from database!", Toast.LENGTH_LONG).show();
+        }
+        if (null != weightedLatLngs) {
+            HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weightedLatLngs).gradient(gradient).build();
+            m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+        }
     }
 }

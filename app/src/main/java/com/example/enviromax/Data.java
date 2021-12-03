@@ -3,16 +3,14 @@ package com.example.enviromax;
 public class Data {
     private Device device;
     private String date;
-    private double lat;
-    private double lng;
+    private Location location;
     private double temp;
     private double humidity;
 
-    public Data(Device device, String date, double lat, double lng, double temp, double humidity) {
+    public Data(Device device, String date, Location location, double temp, double humidity) {
         this.device = device;
         this.date = date;
-        this.lat = lat;
-        this.lng = lng;
+        this.location = location;
         this.temp = temp;
         this.humidity = humidity;
     }
@@ -25,12 +23,8 @@ public class Data {
         return date;
     }
 
-    public double getLat() {
-        return lat;
-    }
-
-    public double getLng() {
-        return lng;
+    public Location getLocation() {
+        return location;
     }
 
     public double getTemp() {

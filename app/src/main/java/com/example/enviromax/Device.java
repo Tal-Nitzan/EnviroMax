@@ -3,14 +3,12 @@ package com.example.enviromax;
 public class Device {
     private String id;
     private String name;
-    private double lat;
-    private double lng;
+    private Location location;
 
-    public Device(String id, String name, double lat, double lng) {
+    public Device(String id, String name, Location location) {
         this.id = id;
         this.name = name;
-        this.lat = lat;
-        this.lng = lng;
+        this.location = location;
     }
 
     public String getId(){
@@ -21,11 +19,7 @@ public class Device {
         return name;
     }
 
-    public double getLat() {
-        return lat;
-    }
-
-    public double getLng() {
-        return lng;
+    public Location getLocation() {
+        return location;
     }
 }
