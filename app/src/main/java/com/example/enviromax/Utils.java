@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
@@ -25,6 +26,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
 public class Utils {
+
+    public static User mainUser;
 
     public static void logout(Activity activity) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -93,6 +96,74 @@ public class Utils {
                 Log.d("xxxxxxx", error.getDetails());
             }
         });
+    }
+
+    public static int[] translateIntensityToColors(FirebaseDB.IntensityEnum intensity) {
+        switch (intensity) {
+            case LOW:
+                return new int[]{
+                        Color.GREEN,
+                        Color.GREEN,
+                        Color.GREEN,
+                        Color.GREEN,
+                        Color.GREEN,
+                        Color.GREEN
+                };
+            case LOW_MID:
+                return new int[]{
+                        Color.GREEN,
+                        Color.GREEN,
+                        Color.GREEN,
+                        Color.YELLOW,
+                        Color.YELLOW,
+                        Color.rgb(255, 165, 0)// orange
+                };
+            case MID:
+                return new int[]{
+                        Color.GREEN,
+                        Color.YELLOW,
+                        Color.YELLOW,
+                        Color.rgb(255, 165, 0),// orange
+                        Color.RED,
+                        Color.RED
+                };
+            case MID_HIGH:
+                return new int[]{
+                        Color.GREEN,
+                        Color.rgb(255, 165, 0), // orange
+                        Color.rgb(255, 165, 0), // orange
+                        Color.RED,
+                        Color.RED,
+                        Color.rgb(153, 50, 204) //dark orchid
+                };
+            case HIGH:
+                return new int[]{
+                        Color.rgb(255, 165, 0), // orange
+                        Color.RED,
+                        Color.RED,
+                        Color.rgb(153, 50, 204), //dark orchid
+                        Color.rgb(153, 50, 204), //dark orchid
+                        Color.rgb(165, 42, 42) //brown(301-500)
+                };
+            case HIGHEST:
+                return new int[]{
+                        Color.rgb(255, 165, 0), // orange
+                        Color.RED,
+                        Color.rgb(153, 50, 204), //dark orchid
+                        Color.rgb(153, 50, 204), //dark orchid
+                        Color.rgb(165, 42, 42), //brown(301-500)
+                        Color.rgb(165, 42, 42) //brown(301-500)
+                };
+            default:
+                return new int[]{
+                        Color.GREEN,
+                        Color.YELLOW,
+                        Color.YELLOW,
+                        Color.rgb(255, 165, 0),// orange
+                        Color.RED,
+                        Color.RED
+                };
+        }
     }
 }
 

@@ -36,6 +36,7 @@ public class Activity_Login extends AppCompatActivity {
         FirebaseUser user = firebaseAuth.getCurrentUser();
 
         if (user != null) {
+
             openApp();
         } else {
             startLoginMethod();
@@ -52,8 +53,7 @@ public class Activity_Login extends AppCompatActivity {
                         .setAvailableProviders(Arrays.asList(
                                 new AuthUI.IdpConfig.GoogleBuilder().build(),
                                 new AuthUI.IdpConfig.EmailBuilder().build(),
-                                new AuthUI.IdpConfig.PhoneBuilder().build(),
-                                new AuthUI.IdpConfig.AnonymousBuilder().build()
+                                new AuthUI.IdpConfig.PhoneBuilder().build()
                         ))
                         .setLogo(R.drawable.ic_logo)
                         .setTosAndPrivacyPolicyUrls(

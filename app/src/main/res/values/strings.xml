@@ -21,4 +21,8 @@
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="email">Email</string>
+    <string name="Temperature">Temperature</string>
+    <string name="Humidity">Humidity</string>
+    <string name="Air_Pollution">Air Pollution</string>
+    <string name="Barometer_Pressure">Barometer Pressure</string>
 </resources>

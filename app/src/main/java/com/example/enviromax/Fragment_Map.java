@@ -2,73 +2,190 @@ package com.example.enviromax;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RawRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.slider.LabelFormatter;
+import com.google.android.material.slider.Slider;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
-import java.util.concurrent.Executor;
 
 public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMapReadyCallback {
 
     private GoogleMap m_googleMap;
     private boolean firstLocationUpdateFlag = false;
     private FusedLocationProviderClient fusedLocationClient;
+    private DataType dataType;
+    private ArrayList<TileOverlay> m_tilesOverlay;
+    private HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>> m_markers;
+    private List<Marker> m_activeMarkers = new ArrayList<Marker>();
+    FloatingActionButton map_BTN_temp;
+    FloatingActionButton map_BTN_barPressure;
+    FloatingActionButton map_BTN_airPollution;
+    FloatingActionButton map_BTN_Humidity;
+    List<WeightedLatLng> m_weightedLatLngs = new ArrayList<WeightedLatLng>();
+    Toast toastMessage;
+    private Slider map_SLIDER_markers;
 
     float[] startpoints = {
             0.1F, 0.2F, 0.3F, 0.4F, 0.6F, 1.0F
     };
 
-    int[] colors = {
-            Color.GREEN,    // green(0-50)
-            Color.YELLOW,    // yellow(51-100)
-            Color.rgb(255,165,0), //Orange(101-150)
-            Color.RED,              //red(151-200)
-            Color.rgb(153,50,204), //dark orchid(201-300)
-            Color.rgb(165,42,42) //brown(301-500)
-    };
+    private void findViews() {
+        map_BTN_temp = (FloatingActionButton) getView().findViewById(R.id.map_BTN_temp);
+        map_BTN_barPressure = (FloatingActionButton) getView().findViewById(R.id.map_BTN_barPressure);
+        map_BTN_airPollution = (FloatingActionButton) getView().findViewById(R.id.map_BTN_airPollution);
+        map_BTN_Humidity = (FloatingActionButton) getView().findViewById(R.id.map_BTN_Humidity);
+        map_SLIDER_markers = (Slider) getView().findViewById(R.id.map_SLIDER_markers);
+    }
+
+    private void initViews() {
+        map_BTN_temp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (dataType == DataType.Temperature) {
+                    showSnackbarHeatMapAlreadyLoaded(R.string.Temperature);
+                    return;
+                }
+                else if (dataType != null) { // It is something else, should remove the current tile.
+                    removeHeatMap();
+                    removeActiveMarkers();
+                }
+                dataType = DataType.Temperature; // Change current type to temperature and update the tile.
+                addHeatMapWeighted();
+                showSnackbarHeatMapLoaded(R.string.Temperature);
+            }
+        });
+
+        map_BTN_barPressure.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (dataType == DataType.Pressure) {
+                    showSnackbarHeatMapAlreadyLoaded(R.string.Barometer_Pressure);
+                    return;
+                }
+                else if (dataType != null) { // It is something else, should remove the current tile.
+                    removeHeatMap();
+                    removeActiveMarkers();
+                }
+                showSnackbarHeatMapLoaded(R.string.Barometer_Pressure);
+                dataType = DataType.Pressure; // Change current type to barometer and update the tile.
+                addHeatMapWeighted();
+            }
+        });
+
+        map_BTN_airPollution.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (dataType == DataType.Air_Pollution) {
+                    showSnackbarHeatMapAlreadyLoaded(R.string.Air_Pollution);
+                    return;
+                }
+                else if (dataType != null) { // It is something else, should remove the current tile.
+                    removeHeatMap();
+                    removeActiveMarkers();
+                }
+                showSnackbarHeatMapLoaded(R.string.Air_Pollution);
+                dataType = DataType.Air_Pollution; // Change current type to air pollution and update the tile.
+                addHeatMapWeighted();
+            }
+        });
+
+        map_BTN_Humidity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (dataType == DataType.Humidity) {
+                    showSnackbarHeatMapAlreadyLoaded(R.string.Humidity);
+                    return;
+                }
+                else if (dataType != null) { // It is something else, should remove the current tile.
+                    removeHeatMap();
+                    removeActiveMarkers();
+                }
+                showSnackbarHeatMapLoaded(R.string.Humidity);
+                dataType = DataType.Humidity; // Change current type to humidity and update the tile.
+                addHeatMapWeighted();
+            }
+        });
+
+
+        map_SLIDER_markers.setLabelFormatter(new LabelFormatter() {
+            @NonNull
+            @Override
+            public String getFormattedValue(float value) {
+                if (value == 0) {
+                    return "No Markers";
+                }
+                return FirebaseDB.IntensityEnum.fromInteger((int)value-1).toString();
+            }
+        });
+
+        map_SLIDER_markers.addOnChangeListener(new Slider.OnChangeListener() {
+
+            @Override
+            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
+                updateMarkers((int)value);
+            }
+        });
+        map_SLIDER_markers.setEnabled(false);
+    }
+
+    private void updateMarkers(int value) {
+        if (m_activeMarkers.size() > 0) {
+            removeActiveMarkers();
+        }
+        if (value == 0) {
+            return;
+        }
+        for (int i=value-1; i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
+            for (MarkerOptions marker : m_markers.get(FirebaseDB.IntensityEnum.fromInteger(i))) {
+                m_activeMarkers.add(m_googleMap.addMarker(marker));
+            }
+        }
+    }
+
+    private void removeActiveMarkers() {
+        for (Marker marker : m_activeMarkers) {
+            marker.remove();
+        }
+        m_activeMarkers.clear();
+    }
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 1;
     private void checkLocationPermission() {
@@ -101,22 +218,6 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         }
     }
 
-    private List<WeightedLatLng> readWeightedItems(@RawRes int resource) throws JSONException {
-        // TODO read from database
-        List<WeightedLatLng> result = new ArrayList<>();
-        InputStream inputStream = getContext().getResources().openRawResource(resource);
-        String json = new Scanner(inputStream).useDelimiter("\\A").next();
-        JSONArray array = new JSONArray(json);
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject object = array.getJSONObject(i);
-            double lat = object.getDouble("lat");
-            double lng = object.getDouble("lng");
-            double intensity = object.getDouble("intensity");
-            result.add(new WeightedLatLng(new LatLng(lat, lng), intensity));
-        }
-        return result;
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -134,6 +235,13 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+
+        findViews();
+        initViews();
+
+        m_tilesOverlay = new ArrayList<TileOverlay>();
+        m_markers = new HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>>();
+        m_activeMarkers = new ArrayList<Marker>();
     }
 
     @Override
@@ -158,22 +266,179 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
                         }
                     });
         }
-        addHeatMapWeighted();
+        setInfoWindowAdapter();
+    }
 
+    public void setInfoWindowAdapter() {
+        m_googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
 
+            @Override
+            public View getInfoWindow(Marker arg0) {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+
+                LinearLayout info = new LinearLayout(getContext());
+                info.setOrientation(LinearLayout.VERTICAL);
+
+                TextView title = new TextView(getContext());
+                title.setTextColor(Color.BLACK);
+                title.setGravity(Gravity.CENTER);
+                title.setTypeface(null, Typeface.BOLD);
+                title.setText(marker.getTitle());
+
+                TextView snippet = new TextView(getContext());
+                snippet.setTextColor(Color.GRAY);
+                snippet.setText(marker.getSnippet());
+
+                info.addView(title);
+                info.addView(snippet);
+
+                return info;
+            }
+        });
     }
 
     public void addHeatMapWeighted() {
-        Gradient gradient = new Gradient(colors, startpoints);
-        List<WeightedLatLng> weightedLatLngs = null;
+        map_SLIDER_markers.setEnabled(true);
+//        Gradient gradient = new Gradient(colors, startpoints);
+        m_weightedLatLngs.clear();
         try {
-            weightedLatLngs = readWeightedItems(R.raw.police_stations);
-        } catch (JSONException e) {
+            switch(dataType) {
+                case Temperature:
+                    // TODO get TEMP data from DB
+                    FirebaseDB.CallBack_Temperature callBack_temperature = new FirebaseDB.CallBack_Temperature() {
+                        @Override
+                        public void dataReady(HashMap<FirebaseDB.IntensityEnum, ArrayList<WeightedLatLng>> weights, HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>> markers) {
+                            try {
+                                removeHeatMap();
+                                removeActiveMarkers();
+                            } catch (Exception ex) {}
+//                            for(HashMap.Entry<FirebaseDB.IntensityEnum, ArrayList<WeightedLatLng>> entry : weights.entrySet())
+//                            {
+                            for (int i=FirebaseDB.IntensityEnum.LOW.ordinal(); i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
+                                if (weights.get(FirebaseDB.IntensityEnum.fromInteger(i)).size() == 0) {
+                                    continue; // Skip empty entries
+                                }
+                                Gradient gradient = new Gradient(Utils.translateIntensityToColors(FirebaseDB.IntensityEnum.fromInteger(i)), startpoints, 500);
+                                HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weights.get(FirebaseDB.IntensityEnum.fromInteger(i))).radius(30).gradient(gradient).build();
+                                m_tilesOverlay.add(m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider)));
+                            }
+
+                            m_markers = markers;
+                            updateMarkers((int)map_SLIDER_markers.getValue());
+
+//                            for (int i=FirebaseDB.IntensityEnum.LOW.ordinal(); i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
+//                                for (MarkerOptions marker : markers.get(FirebaseDB.IntensityEnum.fromInteger(i))) {
+//                                    Marker newMarker = m_googleMap.addMarker(marker);
+//                                    newMarker.setVisible(false);
+//                                    m_markers.add(newMarker);
+//                                }
+//                            }
+                        }
+                    };
+                    new FirebaseDB().getData(callBack_temperature, DataType.Temperature);
+                    break;
+                case Pressure:
+                    FirebaseDB.CallBack_Barometer callBack_barometer = new FirebaseDB.CallBack_Barometer() {
+                        @Override
+                        public void dataReady(HashMap<FirebaseDB.IntensityEnum, ArrayList<WeightedLatLng>> weights, HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>> markers) {
+                            try {
+                                removeActiveMarkers();
+                                removeHeatMap();
+                            } catch (Exception ex) {}
+
+                            for (int i=FirebaseDB.IntensityEnum.LOW.ordinal(); i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
+                                if (weights.get(FirebaseDB.IntensityEnum.fromInteger(i)).size() == 0) {
+                                    continue; // Skip empty entries
+                                }
+                                Gradient gradient = new Gradient(Utils.translateIntensityToColors(FirebaseDB.IntensityEnum.fromInteger(i)), startpoints, 500);
+                                HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weights.get(FirebaseDB.IntensityEnum.fromInteger(i))).radius(30).gradient(gradient).build();
+                                m_tilesOverlay.add(m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider)));
+                            }
+
+                            m_markers = markers;
+                            updateMarkers((int)map_SLIDER_markers.getValue());
+                        }
+                    };
+                    new FirebaseDB().getData(callBack_barometer, DataType.Pressure);
+                    break;
+                case Air_Pollution:
+                    FirebaseDB.CallBack_AirPollution callBack_airPollution = new FirebaseDB.CallBack_AirPollution() {
+                        @Override
+                        public void dataReady(HashMap<FirebaseDB.IntensityEnum, ArrayList<WeightedLatLng>> weights, HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>> markers) {
+                            try {
+                                removeActiveMarkers();
+                                removeHeatMap();
+                            } catch (Exception ex) {}
+                            for (int i=FirebaseDB.IntensityEnum.LOW.ordinal(); i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
+                                if (weights.get(FirebaseDB.IntensityEnum.fromInteger(i)).size() == 0) {
+                                    continue; // Skip empty entries
+                                }
+                                Gradient gradient = new Gradient(Utils.translateIntensityToColors(FirebaseDB.IntensityEnum.fromInteger(i)), startpoints, 500);
+                                HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weights.get(FirebaseDB.IntensityEnum.fromInteger(i))).radius(30).gradient(gradient).build();
+                                m_tilesOverlay.add(m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider)));
+                            }
+
+                            m_markers = markers;
+                            updateMarkers((int)map_SLIDER_markers.getValue());
+                        }
+                    };
+                    new FirebaseDB().getData(callBack_airPollution, DataType.Air_Pollution);
+                    break;
+                case Humidity:
+                    FirebaseDB.CallBack_Humidity callBack_humidity = new FirebaseDB.CallBack_Humidity() {
+                        @Override
+                        public void dataReady(HashMap<FirebaseDB.IntensityEnum, ArrayList<WeightedLatLng>> weights, HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>> markers) {
+                            try {
+                                removeActiveMarkers();
+                                removeHeatMap();
+                            } catch (Exception ex) {}
+                            for (int i=FirebaseDB.IntensityEnum.LOW.ordinal(); i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
+                                if (weights.get(FirebaseDB.IntensityEnum.fromInteger(i)).size() == 0) {
+                                    continue; // Skip empty entries
+                                }
+                                Gradient gradient = new Gradient(Utils.translateIntensityToColors(FirebaseDB.IntensityEnum.fromInteger(i)), startpoints, 500);
+                                HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weights.get(FirebaseDB.IntensityEnum.fromInteger(i))).radius(30).gradient(gradient).build();
+                                m_tilesOverlay.add(m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider)));
+                            }
+
+                            m_markers = markers;
+                            updateMarkers((int)map_SLIDER_markers.getValue());
+                        }
+                    };
+                    new FirebaseDB().getData(callBack_humidity, DataType.Humidity);
+                    break;
+                default:
+                    break;
+            }
+        } catch (Exception e) {
             Toast.makeText(getContext(), "Unable to read heatmap locations from database!", Toast.LENGTH_LONG).show();
         }
-        if (null != weightedLatLngs) {
-            HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weightedLatLngs).gradient(gradient).build();
-            m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider));
+    }
+
+    private void removeHeatMap() {
+        for (TileOverlay overlay : m_tilesOverlay) {
+            overlay.remove();
         }
+        m_tilesOverlay.clear();
+    }
+
+    private void showSnackbarHeatMapLoaded(int id) {
+        if (toastMessage != null) {
+            toastMessage.cancel();
+        }
+        toastMessage = Toast.makeText(getActivity(), getText(id) + " HeatMap loaded!", Toast.LENGTH_LONG);
+        toastMessage.show();
+    }
+
+    private void showSnackbarHeatMapAlreadyLoaded(int id) {
+        if (toastMessage != null) {
+            toastMessage.cancel();
+        }
+        toastMessage = Toast.makeText(getActivity(), getText(id) + " HeatMap already loaded!", Toast.LENGTH_LONG);
+        toastMessage.show();
     }
 }
