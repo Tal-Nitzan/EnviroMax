@@ -1,5 +1,7 @@
 package com.example.enviromax;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -9,8 +11,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,8 +33,8 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
-    private static int numOfActiveDevices = 0;
-    private ArrayList<Device> deviceArrayList;
+//    private Fragment currentFragment;
+//    private String currentFragmentTitle;
 
     // Make sure to be using androidx.appcompat.app.ActionBarDrawerToggle version.
     private ActionBarDrawerToggle drawerToggle;
@@ -38,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Utils.removeStatusBar(this);
+        MainActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -46,14 +51,16 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         // This will display an Up icon (<-), we will replace it with hamburger later
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar actionBar = getSupportActionBar();
+        if (null != actionBar) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         // Find our drawer view
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerToggle = setupDrawerToggle();
         nvDrawer = (NavigationView) findViewById(R.id.nvView);
 
-        Utils.initDevices();
         // Setup drawer view
         setupDrawerContent(nvDrawer);
 
@@ -61,12 +68,14 @@ public class MainActivity extends AppCompatActivity {
         showFragment(Fragment_Home.class, getResources().getString(R.string.home));
     }
 
-    public static void setNumOfActiveDevices(int numOfActiveDevices) {
-        MainActivity.numOfActiveDevices = numOfActiveDevices;
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
-    public static int getNumOfActiveDevices() {
-        return MainActivity.numOfActiveDevices;
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState, @NonNull PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
     }
 
     private void showFragment(Class theFragment, String title) {
@@ -80,6 +89,49 @@ public class MainActivity extends AppCompatActivity {
         fragmentManager.beginTransaction().replace(R.id.flContent, fragment).commit();
         setTitle(title);
     }
+
+//    private void showFragment(Class theFragment, String title) {
+//        if (isFragmentAlreadyRunning(theFragment, title))
+//            return;
+//        FragmentManager fragmentManager = getSupportFragmentManager();
+//        Fragment fragment = (Fragment)fragmentManager.findFragmentByTag(title);
+//        if (fragment == null) { // Unknown fragment
+//        try {
+//                if (currentFragment != null) {
+//                    fragmentManager.beginTransaction().detach(currentFragment).commit();
+//                    fragmentManager.executePendingTransactions();
+//                }
+//                fragment = (Fragment) theFragment.newInstance();
+//                fragmentManager.beginTransaction().add(R.id.flContent, fragment, title).commit();
+//                fragmentManager.executePendingTransactions();
+//                setTitle(title);
+//                currentFragment = fragment;
+//                currentFragmentTitle = title;
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        } else {
+//            try {
+//                fragmentManager.beginTransaction().detach(currentFragment).commit();
+//                fragmentManager.executePendingTransactions();
+//                fragmentManager.beginTransaction().attach(fragment).commit();
+//                fragmentManager.executePendingTransactions();
+//                setTitle(title);
+//                currentFragment = fragment;
+//                currentFragmentTitle = title;
+//            }  catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+
+//    private boolean isFragmentAlreadyRunning(Class theFragment, String title) {
+//        Fragment myFragment = (Fragment)getSupportFragmentManager().findFragmentByTag(title);
+//        if (myFragment != null && currentFragmentTitle != null &&  currentFragmentTitle.equals(title)) {
+//            return true;
+//        }
+//        return false;
+//    }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
         // NOTE: Make sure you pass in a valid toolbar reference.  ActionBarDrawToggle() does not require it

@@ -3,6 +3,7 @@ package com.example.enviromax;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
@@ -29,6 +30,7 @@ public class Activity_Login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Utils.removeStatusBar(this);
+        Activity_Login.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_login);
 
 
@@ -45,15 +47,14 @@ public class Activity_Login extends AppCompatActivity {
 
 
     private void startLoginMethod() {
-        Log.d("pttt", "startLoginMethod");
-
         startActivityForResult(
                 AuthUI.getInstance()
                         .createSignInIntentBuilder()
                         .setAvailableProviders(Arrays.asList(
                                 new AuthUI.IdpConfig.GoogleBuilder().build(),
                                 new AuthUI.IdpConfig.EmailBuilder().build(),
-                                new AuthUI.IdpConfig.PhoneBuilder().build()
+                                new AuthUI.IdpConfig.PhoneBuilder().build(),
+                                new AuthUI.IdpConfig.AnonymousBuilder().build()
                         ))
                         .setLogo(R.drawable.ic_logo)
                         .setTosAndPrivacyPolicyUrls(
@@ -92,7 +93,6 @@ public class Activity_Login extends AppCompatActivity {
                 }
 
                 showSnackbar(R.string.unknown_error);
-                Log.e("pttt", "Sign-in error: ", response.getError());
             }
         }
     }

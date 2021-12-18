@@ -27,8 +27,6 @@ import java.util.ArrayList;
 
 public class Utils {
 
-    public static User mainUser;
-
     public static void logout(Activity activity) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle("Logout");
@@ -67,35 +65,6 @@ public class Utils {
         // Remove status bar
         activity.requestWindowFeature(Window.FEATURE_NO_TITLE);
         activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
-    }
-
-    public static void redirectActivity(Activity activity, Class aClass) {
-        Intent intent = new Intent(activity, aClass);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        activity.startActivity(intent);
-    }
-
-    public static void initDevices() {
-        FirebaseDatabase database = FirebaseDatabase.getInstance("https://enviromax-8ead5-default-rtdb.europe-west1.firebasedatabase.app");
-
-        DatabaseReference myRef = database.getReference().child("Devices");
-        Log.d("xxxxxxx", "here");
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Log.d("xxxxxxx", "...");
-                for (DataSnapshot dsp : snapshot.getChildren()) {
-                    Log.d("xxxxxxx", dsp.toString());
-                }
-                MainActivity.setNumOfActiveDevices((int)snapshot.getChildrenCount());
-                Log.d("xxxxxxx", "" + MainActivity.getNumOfActiveDevices());
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.d("xxxxxxx", error.getDetails());
-            }
-        });
     }
 
     public static int[] translateIntensityToColors(FirebaseDB.IntensityEnum intensity) {
@@ -160,7 +129,7 @@ public class Utils {
                         Color.YELLOW,
                         Color.YELLOW,
                         Color.rgb(255, 165, 0),// orange
-                        Color.RED,
+                        Color.rgb(255, 165, 0),// orange
                         Color.RED
                 };
         }

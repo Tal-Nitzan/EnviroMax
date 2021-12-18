@@ -20,11 +20,10 @@ import java.util.HashMap;
 
 public class FirebaseDB {
 
-    private FirebaseDatabase m_Database;
-    private DatabaseReference m_DatabaseReference;
+    private final DatabaseReference m_DatabaseReference;
 
     public FirebaseDB() {
-        m_Database = FirebaseDatabase.getInstance("https://enviromax-8ead5-default-rtdb.europe-west1.firebasedatabase.app");
+        FirebaseDatabase m_Database = FirebaseDatabase.getInstance("https://enviromax-8ead5-default-rtdb.europe-west1.firebasedatabase.app");
         m_DatabaseReference = m_Database.getReference("Devices");
     }
 
@@ -115,7 +114,7 @@ public class FirebaseDB {
         }
     }
 
-    private <T> HashMap<IntensityEnum, ArrayList<T>> initHashMap(Class<T> cls) {
+    public static <T> HashMap<IntensityEnum, ArrayList<T>> initHashMap(Class<T> cls) {
         HashMap<IntensityEnum, ArrayList<T>> hashMap = new HashMap<IntensityEnum, ArrayList<T>>();
         hashMap.put(IntensityEnum.LOW, new ArrayList<T>());
         hashMap.put(IntensityEnum.LOW_MID, new ArrayList<T>());
@@ -123,7 +122,6 @@ public class FirebaseDB {
         hashMap.put(IntensityEnum.MID_HIGH, new ArrayList<T>());
         hashMap.put(IntensityEnum.HIGH, new ArrayList<T>());
         hashMap.put(IntensityEnum.HIGHEST, new ArrayList<T>());
-
         return hashMap;
     }
 }
