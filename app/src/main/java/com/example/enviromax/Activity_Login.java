@@ -5,8 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
@@ -29,7 +27,7 @@ public class Activity_Login extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Utils.removeStatusBar(this);
+        Utils.fullScreenCall(this);
         Activity_Login.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_login);
 
@@ -53,8 +51,8 @@ public class Activity_Login extends AppCompatActivity {
                         .setAvailableProviders(Arrays.asList(
                                 new AuthUI.IdpConfig.GoogleBuilder().build(),
                                 new AuthUI.IdpConfig.EmailBuilder().build(),
-                                new AuthUI.IdpConfig.PhoneBuilder().build(),
-                                new AuthUI.IdpConfig.AnonymousBuilder().build()
+                                new AuthUI.IdpConfig.PhoneBuilder().build()
+//                                new AuthUI.IdpConfig.AnonymousBuilder().build()
                         ))
                         .setLogo(R.drawable.ic_logo)
                         .setTosAndPrivacyPolicyUrls(

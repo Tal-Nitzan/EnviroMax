@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -59,12 +61,6 @@ public class Utils {
         });
 
         builder.show();
-    }
-
-    public static void removeStatusBar(Activity activity) {
-        // Remove status bar
-        activity.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        activity.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     public static int[] translateIntensityToColors(FirebaseDB.IntensityEnum intensity) {
@@ -133,6 +129,12 @@ public class Utils {
                         Color.RED
                 };
         }
+    }
+
+    public static void fullScreenCall(Activity activity) {
+            View decorView = activity.getWindow().getDecorView();
+            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+            decorView.setSystemUiVisibility(uiOptions);
     }
 }
 

@@ -5,43 +5,32 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.PersistableBundle;
-import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.TextView;
 
 import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
-//    private Fragment currentFragment;
-//    private String currentFragmentTitle;
+    private Fragment currentFragment;
+    private String currentFragmentTitle;
 
     // Make sure to be using androidx.appcompat.app.ActionBarDrawerToggle version.
     private ActionBarDrawerToggle drawerToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Utils.removeStatusBar(this);
+        Utils.fullScreenCall(this);
         MainActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -65,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         setupDrawerContent(nvDrawer);
 
         // Start in Fragment_Home view.
-        showFragment(Fragment_Home.class, getResources().getString(R.string.home));
+        showFragment(new Fragment_Home(), getResources().getString(R.string.home));
     }
 
     @Override
@@ -78,15 +67,52 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState, outPersistentState);
     }
 
-    private void showFragment(Class theFragment, String title) {
-        Fragment fragment = null;
-        try {
-            fragment = (Fragment) theFragment.newInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+    // TODO Fix this!
+//    @Override
+//    public void onBackPressed() {
+//        FragmentManager fragmentManager = getSupportFragmentManager();
+//        int index = fragmentManager.getBackStackEntryCount() - 1;
+//        String tag = null;
+//        Fragment fragment = null;
+//        try {
+//            tag = fragmentManager.getBackStackEntryAt(index).getName();
+//            fragment = fragmentManager.findFragmentByTag(tag);
+//        } catch (Exception e) {};
+//
+//        if (fragment != null && tag != null)
+//            fragmentManager.beginTransaction().replace(R.id.flContent, fragment).addToBackStack(tag).commit();
+//        else
+//            super.onBackPressed();
+//    }
+//
+//    private void showFragment(Fragment theFragment, String title) {
+//        if (currentFragmentTitle != null && currentFragmentTitle.equals(title)) {
+//            return;
+//        }
+//        FragmentManager fragmentManager = getSupportFragmentManager();
+//        Fragment fragment = fragmentManager.findFragmentByTag(title);
+//        if (fragment == null) {
+//            try {
+////                fragment = (Fragment) theFragment.newInstance();
+//                fragmentManager.beginTransaction().replace(R.id.flContent, theFragment, title).addToBackStack(title).commit();
+//                fragmentManager.executePendingTransactions();
+//                currentFragment = theFragment;
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        } else {
+//            fragmentManager.beginTransaction().replace(R.id.flContent, fragment, title).addToBackStack(title).commit();
+//            currentFragment = fragment;
+//        }
+//        currentFragmentTitle = title;
+//        setTitle(title);
+//    }
+
+    private void showFragment(Fragment theFragment, String title) {
         FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.flContent, fragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.flContent, theFragment, title).commit();
+        fragmentManager.executePendingTransactions();
         setTitle(title);
     }
 
@@ -175,30 +201,29 @@ public class MainActivity extends AppCompatActivity {
     public void selectDrawerItem(MenuItem menuItem) { // TODO save state
         // Create a new fragment and specify the fragment to show based on nav item clicked
         Fragment fragment = null;
-        Class fragmentClass;
         boolean logOut = false;
         switch(menuItem.getItemId()) {
             case R.id.nav_home_fragment:
-                fragmentClass = Fragment_Home.class;
+                fragment = new Fragment_Home();
                 break;
             case R.id.nav_map_fragment:
-                fragmentClass = Fragment_Map.class;
+                fragment = new Fragment_Map();
                 break;
             case R.id.nav_personalDetails_fragment:
-                fragmentClass = Fragment_PersonalDetails.class;
+                fragment = new Fragment_PersonalDetails();
                 break;
             case R.id.nav_logOut:
                 logOut = true;
-                fragmentClass = Activity_Login.class;
+//                fragment = new Activity_Login();
                 break;
             default:
-                fragmentClass = Fragment_Map.class;
+                fragment = new Fragment_Map();
         }
 
         if (logOut) {
             Utils.logout(this);
         } else {
-            showFragment(fragmentClass, (String)menuItem.getTitle());
+            showFragment(fragment, (String)menuItem.getTitle());
             mDrawer.closeDrawers();
         }
     }

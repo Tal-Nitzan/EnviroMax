@@ -337,7 +337,7 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         m_weightedLatLngs.clear();
         FirebaseDB.CallBack_Data callBack = new FirebaseDB.CallBack_Data() {
             @Override
-            public void dataReady(HashMap<FirebaseDB.IntensityEnum, ArrayList<WeightedLatLng>> weights, HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>> markers) {
+            public void dataReady(HashMap<FirebaseDB.IntensityEnum, ArrayList<WeightedLatLngAddress>> weights, HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>> markers) {
                 try {
                     removeHeatMap();
                     removeMarkers();
@@ -347,7 +347,11 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
                         continue; // Skip empty entries
                     }
                     Gradient gradient = new Gradient(Utils.translateIntensityToColors(FirebaseDB.IntensityEnum.fromInteger(i)), startpoints, 500);
-                    HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weights.get(FirebaseDB.IntensityEnum.fromInteger(i))).radius(30).gradient(gradient).build();
+                    ArrayList<WeightedLatLng> weightedLatLngsArray = new ArrayList<WeightedLatLng>();
+                    for (WeightedLatLngAddress address : weights.get(FirebaseDB.IntensityEnum.fromInteger(i))) {
+                        weightedLatLngsArray.add(address.getWeightedLatLng());
+                    }
+                    HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weightedLatLngsArray).radius(30).gradient(gradient).build();
                     m_tilesOverlay.add(m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider)));
                 }
 
@@ -357,7 +361,7 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
             }
         };
         try {
-            new FirebaseDB().getData(callBack, dataType);
+            new FirebaseDB(getActivity()).getData(callBack, dataType);
         } catch (Exception e) {
             Toast.makeText(getContext(), "Unable to read heatmap locations from database!", Toast.LENGTH_LONG).show();
         }
