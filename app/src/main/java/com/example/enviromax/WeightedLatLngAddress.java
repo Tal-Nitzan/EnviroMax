@@ -9,7 +9,7 @@ import com.google.maps.android.heatmaps.WeightedLatLng;
 import java.io.IOException;
 import java.util.Locale;
 
-public class WeightedLatLngAddress {
+public class WeightedLatLngAddress implements Comparable<WeightedLatLngAddress> {
     WeightedLatLng weightedLatLng;
     String address;
 
@@ -37,5 +37,17 @@ public class WeightedLatLngAddress {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public boolean equals(WeightedLatLngAddress other) {
+        return this.weightedLatLng.getIntensity() == other.weightedLatLng.getIntensity() && this.weightedLatLng.getPoint().equals(other.weightedLatLng.getPoint());
+    }
+
+    @Override
+    public int compareTo(WeightedLatLngAddress other)
+    {
+        if (this.weightedLatLng.getIntensity() == other.weightedLatLng.getIntensity() && this.weightedLatLng.getPoint().equals(other.weightedLatLng.getPoint()))
+            return 0;
+        return 1;
     }
 }

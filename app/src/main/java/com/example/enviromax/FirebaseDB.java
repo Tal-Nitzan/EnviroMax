@@ -48,6 +48,16 @@ public class FirebaseDB {
     public interface CallBack_Humidity extends CallBack_Data {
     }
 
+    private final static String DATA = "data";
+    private final static String LAST_DATA = "lastData";
+    private final static String LOCATION = "location";
+    private final static String LAT = "lat";
+    private final static String LNG = "lng";
+    private final static String METADATA = "metadata";
+    private final static String AVERAGE = "average";
+    private final static String HIGHEST = "highest";
+
+
     public void getData(final CallBack_Data callBack_data, DataType type) {
         m_DatabaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -55,14 +65,15 @@ public class FirebaseDB {
                 HashMap<IntensityEnum, ArrayList<WeightedLatLngAddress>> weights = initHashMap(WeightedLatLngAddress.class);
                 HashMap<IntensityEnum, ArrayList<MarkerOptions>> markers = initHashMap(MarkerOptions.class);
                 try {
+
                     for (DataSnapshot child : snapshot.getChildren()) {
-                        double valueFromDb = child.child("data").child("lastData").child(type.toString()).getValue(double.class);
-                        LatLng latLng = new LatLng(child.child("location").child("lat").getValue(double.class), child.child("location").child("lng").getValue(double.class));
+                        double valueFromDb = child.child(DATA).child(LAST_DATA).child(type.toString()).getValue(double.class);
+                        LatLng latLng = new LatLng(child.child(LOCATION).child(LAT).getValue(double.class), child.child(LOCATION).child(LNG).getValue(double.class));
                         double intensity = NormalizeData.normalizeData(type, valueFromDb);
 
                         WeightedLatLngAddress weightedAddress = new WeightedLatLngAddress(m_context, latLng, intensity);
                         weights.get(IntensityEnum.intensityToIntensityEnum(intensity)).add(weightedAddress);
-                        markers.get(IntensityEnum.intensityToIntensityEnum(intensity)).add(new MarkerOptions().position(latLng).title(type.toString()).snippet("Address = " + weightedAddress.getAddress() + "\n" + "Current = " + String.format("%.2f",valueFromDb) + "\n" + "Highest = " + "HIGHEST" + "\n" + "Average = " + "AVERAGE")); // TODO HIGHEST and AVERAGE
+                        markers.get(IntensityEnum.intensityToIntensityEnum(intensity)).add(new MarkerOptions().position(latLng).title(type.toString()).snippet("Address = " + weightedAddress.getAddress() + "\n" + "Current = " + String.format("%.2f",valueFromDb) + "\n" + "Highest = HIGHEST" + "\n" + "Average = AVERAGE")); // TODO HIGHEST and AVERAGE
                     }
                 } catch (Exception e) {  }
                 if (weights.size() > 0 && callBack_data != null) {
@@ -83,6 +94,12 @@ public class FirebaseDB {
         HIGH,
         HIGHEST;
 
+        private static final double LOW_VAL = 1.01;
+        private static final double LOW_MID_VAL = 1.08;
+        private static final double MID_VAL = 1.11;
+        private static final double MID_HIGH_VAL = 1.13;
+        private static final double HIGH_VAL = 1.15;
+
         public static IntensityEnum fromInteger(int x) {
             switch(x) {
                 case 0:
@@ -102,22 +119,20 @@ public class FirebaseDB {
         }
 
         public static IntensityEnum intensityToIntensityEnum(double value) {
-            if (value < 1.01) {
+            if (value <= LOW_VAL) {
                 return LOW;
-            } else if (value > 1.01 && value < 1.05) {
+            } else if (value > LOW_VAL && value <= LOW_MID_VAL) {
                 return LOW_MID;
-            } else if (value > 1.05 && value < 1.07) {
+            } else if (value > LOW_MID_VAL && value <= MID_VAL) {
                 return MID;
-            } else if (value > 1.07 && value < 1.09) {
+            } else if (value > MID_VAL && value <= MID_HIGH_VAL) {
                 return MID_HIGH;
-            } else if (value > 1.09 && value < 1.11) {
+            } else if (value > MID_HIGH_VAL && value <= HIGH_VAL) {
                 return HIGH;
             } else {
                 return HIGHEST;
             }
         }
-
-
     }
 
     public static <T> HashMap<IntensityEnum, ArrayList<T>> initHashMap(Class<T> cls) {

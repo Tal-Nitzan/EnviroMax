@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
@@ -52,6 +53,7 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
     private boolean firstLocationUpdateFlag = false;
     private FusedLocationProviderClient fusedLocationClient;
     private DataType dataType;
+    private FloatingActionButton currentButton;
     private ArrayList<TileOverlay> m_tilesOverlay;
     private HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>> m_markers;
     private HashMap<FirebaseDB.IntensityEnum, ArrayList<Marker>> m_activeMarkers = FirebaseDB.initHashMap(Marker.class);
@@ -112,68 +114,28 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         map_BTN_temp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (dataType == DataType.Temperature) {
-                    showSnackbarHeatMapAlreadyLoaded(R.string.Temperature);
-                    return;
-                }
-                else if (dataType != null) { // It is something else, should remove the current tile.
-                    removeHeatMap();
-                    setActiveMarkersInvisible();
-                }
-                dataType = DataType.Temperature; // Change current type to temperature and update the tile.
-                addHeatMapWeighted();
-                showSnackbarHeatMapLoaded(R.string.Temperature);
+                setOnClickForBtn(DataType.Temperature, R.string.Temperature, map_BTN_temp);
             }
         });
 
         map_BTN_barPressure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (dataType == DataType.Pressure) {
-                    showSnackbarHeatMapAlreadyLoaded(R.string.Barometer_Pressure);
-                    return;
-                }
-                else if (dataType != null) { // It is something else, should remove the current tile.
-                    removeHeatMap();
-                    setActiveMarkersInvisible();
-                }
-                showSnackbarHeatMapLoaded(R.string.Barometer_Pressure);
-                dataType = DataType.Pressure; // Change current type to barometer and update the tile.
-                addHeatMapWeighted();
+                setOnClickForBtn(DataType.Pressure, R.string.Barometer_Pressure, map_BTN_barPressure);
             }
         });
 
         map_BTN_airPollution.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (dataType == DataType.Air_Pollution) {
-                    showSnackbarHeatMapAlreadyLoaded(R.string.Air_Pollution);
-                    return;
-                }
-                else if (dataType != null) { // It is something else, should remove the current tile.
-                    removeHeatMap();
-                    setActiveMarkersInvisible();
-                }
-                showSnackbarHeatMapLoaded(R.string.Air_Pollution);
-                dataType = DataType.Air_Pollution; // Change current type to air pollution and update the tile.
-                addHeatMapWeighted();
+                setOnClickForBtn(DataType.Air_Pollution, R.string.Air_Pollution, map_BTN_airPollution);
             }
         });
 
         map_BTN_Humidity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (dataType == DataType.Humidity) {
-                    showSnackbarHeatMapAlreadyLoaded(R.string.Humidity);
-                    return;
-                }
-                else if (dataType != null) { // It is something else, should remove the current tile.
-                    removeHeatMap();
-                    setActiveMarkersInvisible();
-                }
-                showSnackbarHeatMapLoaded(R.string.Humidity);
-                dataType = DataType.Humidity; // Change current type to humidity and update the tile.
-                addHeatMapWeighted();
+                setOnClickForBtn(DataType.Humidity, R.string.Humidity, map_BTN_Humidity);
             }
         });
 
@@ -228,6 +190,23 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
                         MY_PERMISSIONS_REQUEST_LOCATION );
             }
         }
+    }
+
+    public void setOnClickForBtn(DataType type, int id, FloatingActionButton button) {
+        if (dataType == type) {
+            showSnackbarHeatMapAlreadyLoaded(id);
+            return;
+        }
+        else if (dataType != null) { // It is something else, should remove the current tile.
+            removeHeatMap();
+            setActiveMarkersInvisible();
+            currentButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.teal_200, getContext().getTheme())));
+        }
+        showSnackbarHeatMapLoaded(id);
+        currentButton = button;
+        currentButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.purple_200, getContext().getTheme())));
+        dataType = type;
+        addHeatMapWeighted();
     }
 
     @Override

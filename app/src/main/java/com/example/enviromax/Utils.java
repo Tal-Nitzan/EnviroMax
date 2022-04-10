@@ -67,66 +67,66 @@ public class Utils {
         switch (intensity) {
             case LOW:
                 return new int[]{
-                        Color.GREEN,
-                        Color.GREEN,
-                        Color.GREEN,
-                        Color.GREEN,
-                        Color.GREEN,
-                        Color.GREEN
+                        MyColor.GREEN,
+                        MyColor.GREEN,
+                        MyColor.GREEN,
+                        MyColor.GREEN,
+                        MyColor.GREEN,
+                        MyColor.GREEN
                 };
             case LOW_MID:
                 return new int[]{
-                        Color.GREEN,
-                        Color.GREEN,
-                        Color.GREEN,
-                        Color.YELLOW,
-                        Color.YELLOW,
-                        Color.rgb(255, 165, 0)// orange
+                        MyColor.GREEN,
+                        MyColor.GREEN,
+                        MyColor.GREEN,
+                        MyColor.YELLOW,
+                        MyColor.YELLOW,
+                        MyColor.Orange
                 };
             case MID:
                 return new int[]{
-                        Color.GREEN,
-                        Color.YELLOW,
-                        Color.YELLOW,
-                        Color.rgb(255, 165, 0),// orange
-                        Color.RED,
-                        Color.RED
+                        MyColor.GREEN,
+                        MyColor.YELLOW,
+                        MyColor.YELLOW,
+                        MyColor.Orange,
+                        MyColor.RED,
+                        MyColor.RED
                 };
             case MID_HIGH:
                 return new int[]{
-                        Color.GREEN,
-                        Color.rgb(255, 165, 0), // orange
-                        Color.rgb(255, 165, 0), // orange
-                        Color.RED,
-                        Color.RED,
-                        Color.rgb(153, 50, 204) //dark orchid
+                        MyColor.GREEN,
+                        MyColor.Orange,
+                        MyColor.Orange,
+                        MyColor.RED,
+                        MyColor.RED,
+                        MyColor.DarkOrchid,
                 };
             case HIGH:
                 return new int[]{
-                        Color.rgb(255, 165, 0), // orange
-                        Color.RED,
-                        Color.RED,
-                        Color.rgb(153, 50, 204), //dark orchid
-                        Color.rgb(153, 50, 204), //dark orchid
-                        Color.rgb(165, 42, 42) //brown(301-500)
+                        MyColor.Orange,
+                        MyColor.RED,
+                        MyColor.RED,
+                        MyColor.DarkOrchid,
+                        MyColor.DarkOrchid,
+                        MyColor.Brown
                 };
             case HIGHEST:
                 return new int[]{
-                        Color.rgb(255, 165, 0), // orange
-                        Color.RED,
-                        Color.rgb(153, 50, 204), //dark orchid
-                        Color.rgb(153, 50, 204), //dark orchid
-                        Color.rgb(165, 42, 42), //brown(301-500)
-                        Color.rgb(165, 42, 42) //brown(301-500)
+                        MyColor.Orange,
+                        MyColor.RED,
+                        MyColor.DarkOrchid,
+                        MyColor.DarkOrchid,
+                        MyColor.Brown,
+                        MyColor.Brown
                 };
             default:
                 return new int[]{
-                        Color.GREEN,
-                        Color.YELLOW,
-                        Color.YELLOW,
-                        Color.rgb(255, 165, 0),// orange
-                        Color.rgb(255, 165, 0),// orange
-                        Color.RED
+                        MyColor.GREEN,
+                        MyColor.YELLOW,
+                        MyColor.YELLOW,
+                        MyColor.Orange,
+                        MyColor.Orange,
+                        MyColor.RED
                 };
         }
     }
