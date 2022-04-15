@@ -25,4 +25,5 @@
     <string name="Humidity">Humidity</string>
     <string name="Air_Pollution">Air Pollution</string>
     <string name="Barometer_Pressure">Barometer Pressure</string>
+    <string name="markers">Markers</string>
 </resources>

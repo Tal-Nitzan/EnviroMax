@@ -7,6 +7,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
@@ -20,7 +21,9 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,29 +53,41 @@ import java.util.List;
 public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMapReadyCallback {
 
     private GoogleMap m_googleMap;
-    private boolean firstLocationUpdateFlag = false;
+    private final boolean firstLocationUpdateFlag = false;
     private FusedLocationProviderClient fusedLocationClient;
     private DataType dataType;
     private FloatingActionButton currentButton;
     private ArrayList<TileOverlay> m_tilesOverlay;
-    private HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>> m_markers;
-    private HashMap<FirebaseDB.IntensityEnum, ArrayList<Marker>> m_activeMarkers = FirebaseDB.initHashMap(Marker.class);
-    private List<WeightedLatLng> m_weightedLatLngs = new ArrayList<WeightedLatLng>();
+    private ArrayList<MarkerOptions> m_markers;
+    private final ArrayList<Marker> m_activeMarkers = new ArrayList<Marker>();
+    private final List<WeightedLatLng> m_weightedLatLngs = new ArrayList<WeightedLatLng>();
     private FloatingActionButton map_BTN_temp;
     private FloatingActionButton map_BTN_barPressure;
     private FloatingActionButton map_BTN_airPollution;
     private FloatingActionButton map_BTN_Humidity;
-    private Slider map_SLIDER_markers;
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
+    private Switch map_SWITCH_markers;
+    private Slider map_SLIDER_daySlider;
     private Toast toastMessage;
-    private boolean isHeatMapLoaded;
-    private final float[] startpoints = { 0.1F, 0.2F, 0.3F, 0.4F, 0.6F, 1.0F };
+    private final int[] colors = {
+            Color.GREEN,    // green(0-50)
+            Color.YELLOW,    // yellow(51-100)
+            Color.rgb(255,165,0), //Orange(101-150)
+            Color.RED,              //red(151-200)
+            Color.rgb(153,50,204), //dark orchid(201-300)
+            Color.rgb(165,42,42) //brown(301-500)
+    };
+    private final float[] startpoints = {
+            0.1F, 0.2F, 0.3F, 0.4F, 0.6F, 1.0F
+    };
 
     private void findViews() {
         map_BTN_temp = (FloatingActionButton) getView().findViewById(R.id.map_BTN_temp);
         map_BTN_barPressure = (FloatingActionButton) getView().findViewById(R.id.map_BTN_barPressure);
         map_BTN_airPollution = (FloatingActionButton) getView().findViewById(R.id.map_BTN_airPollution);
         map_BTN_Humidity = (FloatingActionButton) getView().findViewById(R.id.map_BTN_Humidity);
-        map_SLIDER_markers = (Slider) getView().findViewById(R.id.map_SLIDER_markers);
+        map_SLIDER_daySlider = (Slider) getView().findViewById(R.id.map_SLIDER_daySlider);
+        map_SWITCH_markers = (Switch) getView().findViewById(R.id.map_SWITCH_markers);
     }
 
     @Nullable
@@ -97,7 +112,7 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         initViews();
 
         m_tilesOverlay = new ArrayList<TileOverlay>();
-        m_markers = new HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>>();
+        m_markers = new ArrayList<MarkerOptions>();
     }
 
     @Override
@@ -140,24 +155,38 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         });
 
 
-        map_SLIDER_markers.setLabelFormatter(new LabelFormatter() {
-            @NonNull
+//        map_SLIDER_markers.setLabelFormatter(new LabelFormatter() { TODO: get dates from DB
+//            @NonNull
+//            @Override
+//            public String getFormattedValue(float value) {
+//                if (value == 0) {
+//                    return "No Markers";
+//                }
+//                return FirebaseDB.IntensityEnum.fromInteger((int)value-1).toString();
+//            }
+//        });
+
+        map_SLIDER_daySlider.addOnChangeListener(new Slider.OnChangeListener() {
+            @SuppressLint("RestrictedApi")
             @Override
-            public String getFormattedValue(float value) {
-                if (value == 0) {
-                    return "No Markers";
+            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
+                // TODO : implement
+            }
+        });
+        map_SLIDER_daySlider.setEnabled(false);
+
+        map_SWITCH_markers.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    showMarkers();
+                } else {
+                    setActiveMarkersInvisible();
                 }
-                return FirebaseDB.IntensityEnum.fromInteger((int)value-1).toString();
             }
         });
 
-        map_SLIDER_markers.addOnChangeListener(new Slider.OnChangeListener() {
-            @Override
-            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
-                updateMarkers((int)value);
-            }
-        });
-        map_SLIDER_markers.setEnabled(false);
+        map_SWITCH_markers.setEnabled(false);
     }
 
 
@@ -199,7 +228,7 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         }
         else if (dataType != null) { // It is something else, should remove the current tile.
             removeHeatMap();
-            setActiveMarkersInvisible();
+            removeMarkers();
             currentButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.teal_200, getContext().getTheme())));
         }
         showSnackbarHeatMapLoaded(id);
@@ -236,46 +265,47 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
 
 
 
-    private void updateMarkers(int value) {
-        if (m_activeMarkers.size() > 0) {
-            setActiveMarkersInvisible();
-        }
-        if (value == 0) {
-            return;
-        }
-        for (int i=value-1; i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
-            for (Marker marker : m_activeMarkers.get(FirebaseDB.IntensityEnum.fromInteger(i))) {
-                Log.d("vvvv", "...");
-                marker.setVisible(true);
-            }
+//    private void updateMarkers(int value) {
+//        if (m_activeMarkers.size() > 0) {
+//            setActiveMarkersInvisible();
+//        }
+//        if (value == 0) {
+//            return;
+//        }
+//        for (int i = value - 1; i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
+//            for (Marker marker : m_activeMarkers.get(FirebaseDB.IntensityEnum.fromInteger(i))) {
+//                Log.d("vvvv", "...");
+//                marker.setVisible(true);
+//            }
+//        }
+//    }
+
+    private void showMarkers() {
+        for (Marker marker : m_activeMarkers) {
+            marker.setVisible(true);
         }
     }
 
+
     private void setActiveMarkersInvisible() {
-        for (int i=0; i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
-            for (Marker marker : m_activeMarkers.get(FirebaseDB.IntensityEnum.fromInteger(i))) {
-                marker.setVisible(false);
-            }
+        for (Marker marker : m_activeMarkers) {
+            marker.setVisible(false);
         }
     }
 
     private void initMarkers() {
-        for (int i=0; i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
-            for (MarkerOptions _marker : m_markers.get(FirebaseDB.IntensityEnum.fromInteger(i))) {
-                Marker marker = m_googleMap.addMarker(_marker);
-                marker.setVisible(false);
-                m_activeMarkers.get(FirebaseDB.IntensityEnum.fromInteger(i)).add(marker);
-            }
+        for (MarkerOptions _marker : m_markers) {
+            Marker marker = m_googleMap.addMarker(_marker);
+            marker.setVisible(false);
+            m_activeMarkers.add(marker);
         }
     }
 
     private void removeMarkers() {
-        for (int i=0; i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
-            for (Marker marker : m_activeMarkers.get(FirebaseDB.IntensityEnum.fromInteger(i))) {
-                marker.remove();
-            }
-            m_activeMarkers.get(FirebaseDB.IntensityEnum.fromInteger(i)).clear();
+        for (Marker marker : m_activeMarkers) {
+            marker.remove();
         }
+        m_activeMarkers.clear();
     }
 
     public void setInfoWindowAdapter() {
@@ -311,32 +341,30 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
     }
 
     public void addHeatMapWeighted() {
-        isHeatMapLoaded = true;
-        map_SLIDER_markers.setEnabled(true);
+        boolean isHeatMapLoaded = true;
+        map_SLIDER_daySlider.setEnabled(true);
+        map_SWITCH_markers.setEnabled(true);
         m_weightedLatLngs.clear();
         FirebaseDB.CallBack_Data callBack = new FirebaseDB.CallBack_Data() {
             @Override
-            public void dataReady(HashMap<FirebaseDB.IntensityEnum, ArrayList<WeightedLatLngAddress>> weights, HashMap<FirebaseDB.IntensityEnum, ArrayList<MarkerOptions>> markers) {
+            public void dataReady(ArrayList<WeightedLatLngAddress> weights, ArrayList<MarkerOptions> markers) {
                 try {
                     removeHeatMap();
                     removeMarkers();
                 } catch (Exception ex) { Toast.makeText(getActivity(), "Unable to remove HeatMap and Markers", Toast.LENGTH_LONG).show(); }
-                for (int i=FirebaseDB.IntensityEnum.LOW.ordinal(); i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
-                    if (weights.get(FirebaseDB.IntensityEnum.fromInteger(i)).size() == 0) {
-                        continue; // Skip empty entries
-                    }
-                    Gradient gradient = new Gradient(Utils.translateIntensityToColors(FirebaseDB.IntensityEnum.fromInteger(i)), startpoints, 500);
-                    ArrayList<WeightedLatLng> weightedLatLngsArray = new ArrayList<WeightedLatLng>();
-                    for (WeightedLatLngAddress address : weights.get(FirebaseDB.IntensityEnum.fromInteger(i))) {
-                        weightedLatLngsArray.add(address.getWeightedLatLng());
-                    }
-                    HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weightedLatLngsArray).radius(30).gradient(gradient).build();
-                    m_tilesOverlay.add(m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider)));
+                Gradient gradient = new Gradient(colors, startpoints, 1000);
+                ArrayList<WeightedLatLng> weightedLatLngsArray = new ArrayList<WeightedLatLng>();
+                for (WeightedLatLngAddress address : weights) {
+                    weightedLatLngsArray.add(address.getWeightedLatLng());
                 }
+                HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weightedLatLngsArray).radius(30).gradient(gradient).build();
+                m_tilesOverlay.add(m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider)));
 
                 m_markers = markers;
                 initMarkers();
-                updateMarkers((int)map_SLIDER_markers.getValue());
+                if (map_SWITCH_markers.isChecked()) {
+                    showMarkers();
+                }
             }
         };
         try {

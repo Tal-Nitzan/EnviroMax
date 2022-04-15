@@ -7,12 +7,11 @@
     tools:context=".Fragment_Map">
 
 
-
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -23,61 +22,76 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginStart="55dp" >
+            android:orientation="vertical"
+            android:layout_margin="8dp">
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/map_BTN_temp"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:fabSize="mini"
-                android:src="@drawable/ic_temp"
-                android:contentDescription="@string/Temperature"
-                android:layout_marginHorizontal="10dp"/>
+                android:orientation="horizontal"
+                android:layout_marginStart="55dp" >
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/map_BTN_barPressure"
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/map_BTN_temp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:fabSize="mini"
+                    android:src="@drawable/ic_temp"
+                    android:contentDescription="@string/Temperature"
+                    android:layout_marginHorizontal="10dp"/>
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/map_BTN_barPressure"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:fabSize="mini"
+                    android:src="@drawable/ic_bar_pressure"
+                    android:contentDescription="@string/Barometer_Pressure"
+                    android:layout_marginHorizontal="10dp"/>
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/map_BTN_airPollution"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:fabSize="mini"
+                    android:src="@drawable/ic_air_pollution"
+                    android:contentDescription="@string/Air_Pollution"
+                    android:layout_marginHorizontal="10dp"/>
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/map_BTN_Humidity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:fabSize="mini"
+                    android:src="@drawable/ic_humidity"
+                    android:contentDescription="@string/Humidity"
+                    android:layout_marginHorizontal="10dp"/>
+
+            </LinearLayout>
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/map_SLIDER_daySlider"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:fabSize="mini"
-                android:src="@drawable/ic_bar_pressure"
-                android:contentDescription="@string/Barometer_Pressure"
-                android:layout_marginHorizontal="10dp"/>
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/map_BTN_airPollution"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:fabSize="mini"
-                android:src="@drawable/ic_air_pollution"
-                android:contentDescription="@string/Air_Pollution"
-                android:layout_marginHorizontal="10dp"/>
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/map_BTN_Humidity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:fabSize="mini"
-                android:src="@drawable/ic_humidity"
-                android:contentDescription="@string/Humidity"
-                android:layout_marginHorizontal="10dp"/>
+                android:stepSize="1"
+                android:value="0"
+                android:valueFrom="0"
+                android:valueTo="72"
+                android:layout_marginTop="18dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"/>
 
         </LinearLayout>
 
-        <com.google.android.material.slider.Slider
-            android:id="@+id/map_SLIDER_markers"
+        <Switch
+            android:id="@+id/map_SWITCH_markers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:stepSize="1"
-            android:value="0"
-            android:valueFrom="0"
-            android:valueTo="6"
-            android:layout_marginTop="18dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-
+            android:text="@string/markers"
+            android:checked="false"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
     </LinearLayout>
 
 
