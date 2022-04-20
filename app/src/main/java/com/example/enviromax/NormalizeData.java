@@ -8,24 +8,35 @@ enum DataType {
 }
 
 public class NormalizeData {
-    public static final int TEMP = 24;
-    public static final int BAROMETER_PRESSURE = 1000;
-    public static final int AIR_POLLUTION = 40000;
-    public static final int HUMIDITY = 38;
+    public static final int MIN_TEMP = 22;
+    public static final int MAX_TEMP = 28;
+
+    public static final int MIN_BAROMETER_PRESSURE = 950;
+    public static final int MAX_BAROMETER_PRESSURE = 1100;
+
+    public static final int MIN_AIR_POLLUTION = 37000;
+    public static final int MAX_AIR_POLLUTION = 45000;
+
+    public static final int MIN_HUMIDITY = 35;
+    public static final int MAX_HUMIDITY = 42;
 
 
     public static double normalizeData(DataType type, double value) throws IllegalArgumentException {
         switch (type) {
             case Temperature:
-                return value/TEMP;
+                return normalizeAlgorithm(value, MIN_TEMP, MAX_TEMP);
             case Pressure:
-                return value/BAROMETER_PRESSURE;
+                return normalizeAlgorithm(value, MIN_BAROMETER_PRESSURE, MAX_BAROMETER_PRESSURE);
             case Air_Pollution:
-                return value/AIR_POLLUTION;
+                return normalizeAlgorithm(value, MIN_AIR_POLLUTION, MAX_AIR_POLLUTION);
             case Humidity:
-                return value/HUMIDITY;
+                return normalizeAlgorithm(value, MIN_HUMIDITY, MAX_HUMIDITY);
             default:
                 throw new IllegalArgumentException("Invalid DataType");
         }
+    }
+
+    private static double normalizeAlgorithm(double value, int min, int max) {
+        return ((value - min) / (max - min));
     }
 }

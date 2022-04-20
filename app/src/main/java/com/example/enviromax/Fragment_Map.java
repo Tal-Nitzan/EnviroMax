@@ -2,6 +2,7 @@ package com.example.enviromax;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -14,6 +15,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.util.Log;
@@ -39,6 +41,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
@@ -46,10 +49,13 @@ import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@RequiresApi(api = Build.VERSION_CODES.O)
 public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMapReadyCallback {
 
     private GoogleMap m_googleMap;
@@ -65,10 +71,16 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
     private FloatingActionButton map_BTN_barPressure;
     private FloatingActionButton map_BTN_airPollution;
     private FloatingActionButton map_BTN_Humidity;
+    private MaterialButton map_BTN_left;
+    private MaterialButton map_BTN_right;
+    private TextView map_LBL_date;
+    private int currentDate = 0;
+
+
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private Switch map_SWITCH_markers;
-    private Slider map_SLIDER_daySlider;
     private Toast toastMessage;
+
     private final int[] colors = {
             Color.GREEN,    // green(0-50)
             Color.YELLOW,    // yellow(51-100)
@@ -77,6 +89,7 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
             Color.rgb(153,50,204), //dark orchid(201-300)
             Color.rgb(165,42,42) //brown(301-500)
     };
+
     private final float[] startpoints = {
             0.1F, 0.2F, 0.3F, 0.4F, 0.6F, 1.0F
     };
@@ -86,8 +99,11 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         map_BTN_barPressure = (FloatingActionButton) getView().findViewById(R.id.map_BTN_barPressure);
         map_BTN_airPollution = (FloatingActionButton) getView().findViewById(R.id.map_BTN_airPollution);
         map_BTN_Humidity = (FloatingActionButton) getView().findViewById(R.id.map_BTN_Humidity);
-        map_SLIDER_daySlider = (Slider) getView().findViewById(R.id.map_SLIDER_daySlider);
         map_SWITCH_markers = (Switch) getView().findViewById(R.id.map_SWITCH_markers);
+        map_LBL_date = (TextView) getView().findViewById(R.id.map_LBL_date);
+        map_BTN_left = (MaterialButton) getView().findViewById(R.id.map_BTN_left);
+        map_BTN_right = (MaterialButton) getView().findViewById(R.id.map_BTN_right);
+
     }
 
     @Nullable
@@ -154,26 +170,54 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
             }
         });
 
+        map_BTN_left.setEnabled(false);
 
-//        map_SLIDER_markers.setLabelFormatter(new LabelFormatter() { TODO: get dates from DB
+        map_BTN_left.setOnClickListener(new View.OnClickListener() {
+
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onClick(View v) {
+                currentDate--;
+                leftRightButtonsEnabling();
+                Log.d("zzzz", "" + currentDate);
+                addHeatMapWeighted();
+            }
+        });
+
+        map_BTN_right.setEnabled(false);
+
+        map_BTN_right.setOnClickListener(new View.OnClickListener() {
+
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onClick(View v) {
+                currentDate++;
+                leftRightButtonsEnabling();
+                Log.d("zzzz", "" + currentDate);
+                addHeatMapWeighted();
+            }
+        });
+
+
+//        map_SLIDER_daySlider.setLabelFormatter(new LabelFormatter() {
+//            @RequiresApi(api = Build.VERSION_CODES.O)
 //            @NonNull
 //            @Override
 //            public String getFormattedValue(float value) {
-//                if (value == 0) {
-//                    return "No Markers";
-//                }
-//                return FirebaseDB.IntensityEnum.fromInteger((int)value-1).toString();
+//                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:00:00");
+//                LocalDateTime now = LocalDateTime.now().minusHours((long)value);
+//                return dtf.format(now);
 //            }
 //        });
 
-        map_SLIDER_daySlider.addOnChangeListener(new Slider.OnChangeListener() {
-            @SuppressLint("RestrictedApi")
-            @Override
-            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
-                // TODO : implement
-            }
-        });
-        map_SLIDER_daySlider.setEnabled(false);
+//        map_SLIDER_daySlider.addOnChangeListener(new Slider.OnChangeListener() {
+//            @SuppressLint("RestrictedApi")
+//            @Override
+//            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
+//                addHeatMapWeighted();
+//            }
+//        });
+//        map_SLIDER_daySlider.setEnabled(false);
 
         map_SWITCH_markers.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -340,11 +384,13 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void addHeatMapWeighted() {
         boolean isHeatMapLoaded = true;
-        map_SLIDER_daySlider.setEnabled(true);
+        leftRightButtonsEnabling();
         map_SWITCH_markers.setEnabled(true);
         m_weightedLatLngs.clear();
+        updateDateLabel();
         FirebaseDB.CallBack_Data callBack = new FirebaseDB.CallBack_Data() {
             @Override
             public void dataReady(ArrayList<WeightedLatLngAddress> weights, ArrayList<MarkerOptions> markers) {
@@ -357,7 +403,7 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
                 for (WeightedLatLngAddress address : weights) {
                     weightedLatLngsArray.add(address.getWeightedLatLng());
                 }
-                HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weightedLatLngsArray).radius(30).gradient(gradient).build();
+                HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weightedLatLngsArray).radius(45).gradient(gradient).build();
                 m_tilesOverlay.add(m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider)));
 
                 m_markers = markers;
@@ -368,10 +414,28 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
             }
         };
         try {
-            new FirebaseDB(getActivity()).getData(callBack, dataType);
+            new FirebaseDB(getActivity()).getData(callBack, dataType, currentDate);
         } catch (Exception e) {
             Toast.makeText(getContext(), "Unable to read heatmap locations from database!", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void leftRightButtonsEnabling() {
+        if (currentDate > 0)
+            map_BTN_left.setEnabled(true);
+        if (currentDate == 0)
+            map_BTN_left.setEnabled(false);
+        if (currentDate < 71)
+            map_BTN_right.setEnabled(true);
+        if (currentDate == 71)
+            map_BTN_right.setEnabled(false);
+    }
+
+    private void updateDateLabel()
+    {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:00");
+        LocalDateTime now = LocalDateTime.now().minusHours(currentDate);
+        map_LBL_date.setText(dtf.format(now));
     }
 
     private void removeHeatMap() {

@@ -2,10 +2,12 @@ package com.example.enviromax;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -17,17 +19,20 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.maps.android.heatmaps.WeightedLatLng;
 
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class FirebaseDB {
 
-    private final DatabaseReference m_DatabaseReference;
+    private DatabaseReference m_DatabaseReference;
     private final Context m_context;
+    private FirebaseDatabase m_Database;
 
     public FirebaseDB(Context context) {
-        FirebaseDatabase m_Database = FirebaseDatabase.getInstance("https://enviromax-8ead5-default-rtdb.europe-west1.firebasedatabase.app");
-        m_DatabaseReference = m_Database.getReference("Devices");
+        m_Database = FirebaseDatabase.getInstance("https://enviromax-8ead5-default-rtdb.europe-west1.firebasedatabase.app");
+        m_DatabaseReference = m_Database.getReference();
         this.m_context = context;
     }
 
@@ -52,26 +57,32 @@ public class FirebaseDB {
     private final static String LOCATION = "location";
     private final static String LAT = "lat";
     private final static String LNG = "lng";
-    private final static String METADATA = "metadata";
-    private final static String AVERAGE = "average";
-    private final static String HIGHEST = "highest";
 
 
-    public void getData(final CallBack_Data callBack_data, DataType type) {
-        m_DatabaseReference.addValueEventListener(new ValueEventListener() {
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void getData(final CallBack_Data callBack_data, DataType type, float hour) {
+        m_DatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+
                 ArrayList<WeightedLatLngAddress> weights = new ArrayList<WeightedLatLngAddress>();
                 ArrayList<MarkerOptions> markers = new ArrayList<MarkerOptions>();
                 try {
+                    for (DataSnapshot rpiSnapshot : snapshot.child("Devices").getChildren()) {
 
-                    for (DataSnapshot child : snapshot.getChildren()) {
-                        double valueFromDb = child.child(DATA).child(LAST_DATA).child(type.toString()).getValue(double.class);
-                        LatLng latLng = new LatLng(child.child(LOCATION).child(LAT).getValue(double.class), child.child(LOCATION).child(LNG).getValue(double.class));
+                        String rpiName = rpiSnapshot.getKey().toString();
+                        LatLng latLng = new LatLng(snapshot.child("Devices").child(rpiName).child("location").child(LAT).getValue(double.class), snapshot.child("Devices").child(rpiName).child("location").child(LNG).getValue(double.class));
 
-                        WeightedLatLngAddress weightedAddress = new WeightedLatLngAddress(m_context, latLng, valueFromDb);
+                        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("ddMMyyyyHH");
+                        LocalDateTime theDate = LocalDateTime.now().minusHours((long)hour);
+                        String assembleDate = dtf.format(theDate);
+
+                        double valueFromDb = snapshot.child("data").child(assembleDate).child(rpiName).child(type.toString()).getValue(double.class);
+
+                        WeightedLatLngAddress weightedAddress = new WeightedLatLngAddress(m_context, latLng, NormalizeData.normalizeData(type, valueFromDb));
+
                         weights.add(weightedAddress);
-                        markers.add(new MarkerOptions().position(latLng).title(type.toString()).snippet("Address = " + weightedAddress.getAddress() + "\n" + "Current = " + String.format("%.2f", valueFromDb) + "\n" + "Highest = HIGHEST" + "\n" + "Average = AVERAGE")); // TODO HIGHEST and AVERAGE
+                        markers.add(new MarkerOptions().position(latLng).title(type.toString()).snippet("Address = " + weightedAddress.getAddress() + "\n" + "Current = " + String.format("%.2f", valueFromDb)));
                     }
                 } catch (Exception e) {
                 }

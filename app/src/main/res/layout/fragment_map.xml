@@ -14,74 +14,107 @@
         android:layout_height="match_parent" />
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_margin="8dp">
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_margin="8dp">
+            android:layout_margin="8dp"
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginStart="55dp" >
+                android:layout_marginStart="55dp"
+                android:orientation="horizontal">
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/map_BTN_temp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:fabSize="mini"
-                    android:src="@drawable/ic_temp"
+                    android:layout_marginHorizontal="10dp"
                     android:contentDescription="@string/Temperature"
-                    android:layout_marginHorizontal="10dp"/>
+                    android:src="@drawable/ic_temp"
+                    app:fabSize="mini" />
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/map_BTN_barPressure"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:fabSize="mini"
-                    android:src="@drawable/ic_bar_pressure"
+                    android:layout_marginHorizontal="10dp"
                     android:contentDescription="@string/Barometer_Pressure"
-                    android:layout_marginHorizontal="10dp"/>
+                    android:src="@drawable/ic_bar_pressure"
+                    app:fabSize="mini" />
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/map_BTN_airPollution"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:fabSize="mini"
-                    android:src="@drawable/ic_air_pollution"
+                    android:layout_marginHorizontal="10dp"
                     android:contentDescription="@string/Air_Pollution"
-                    android:layout_marginHorizontal="10dp"/>
+                    android:src="@drawable/ic_air_pollution"
+                    app:fabSize="mini" />
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/map_BTN_Humidity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:fabSize="mini"
-                    android:src="@drawable/ic_humidity"
+                    android:layout_marginHorizontal="10dp"
                     android:contentDescription="@string/Humidity"
-                    android:layout_marginHorizontal="10dp"/>
+                    android:src="@drawable/ic_humidity"
+                    app:fabSize="mini" />
 
             </LinearLayout>
 
-            <com.google.android.material.slider.Slider
-                android:id="@+id/map_SLIDER_daySlider"
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:stepSize="1"
-                android:value="0"
-                android:valueFrom="0"
-                android:valueTo="72"
-                android:layout_marginTop="18dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/map_BTN_left"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:text="@string/left_hour"
+                    android:textColor="@color/dark_gray"
+                    android:textSize="20sp"
+                    app:cornerRadius="50dp"
+                    app:iconTint="@color/dark_gray"
+                    app:strokeColor="@color/dark_gray" />
+
+                <TextView
+                    android:id="@+id/map_LBL_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="25dp"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:text="@string/current_date" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/map_BTN_right"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/right_hour"
+                    android:textStyle="bold"
+                    android:textColor="@color/dark_gray"
+                    android:textSize="20sp"
+                    app:cornerRadius="50dp"
+                    app:iconTint="@color/dark_gray"
+                    app:strokeColor="@color/dark_gray" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -89,8 +122,8 @@
             android:id="@+id/map_SWITCH_markers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/markers"
             android:checked="false"
+            android:text="@string/markers"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
     </LinearLayout>
 
