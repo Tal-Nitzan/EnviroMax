@@ -1,10 +1,12 @@
 package com.example.enviromax;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.animation.Animator;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -15,6 +17,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+@RequiresApi(api = Build.VERSION_CODES.O)
 public class Activity_Splash extends AppCompatActivity {
 
     private final static int ANIMATION_DURATION = 2000;
@@ -24,7 +27,7 @@ public class Activity_Splash extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Utils.fullScreenCall(this);
-        Activity_Splash.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        Activity_Splash.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
@@ -46,14 +49,7 @@ public class Activity_Splash extends AppCompatActivity {
             public void onClick(View v) {
                 FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
                 FirebaseUser user = firebaseAuth.getCurrentUser();
-
-                Intent myIntent;
-
-                if (user != null) {
-                    myIntent = new Intent(Activity_Splash.this, MainActivity.class);
-                } else {
-                    myIntent = new Intent(Activity_Splash.this, Activity_Login.class);
-                }
+                Intent myIntent = new Intent(Activity_Splash.this, MainActivity.class);;
                 startActivity(myIntent);
                 finish();
             }
