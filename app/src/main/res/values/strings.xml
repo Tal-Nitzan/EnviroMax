@@ -26,7 +26,7 @@
     <string name="Air_Pollution">Air Pollution</string>
     <string name="Barometer_Pressure">Barometer Pressure</string>
     <string name="markers">Markers</string>
-    <string name="left_hour"><![CDATA[<]]></string>
-    <string name="right_hour"><![CDATA[>]]></string>
+    <string name="minus_hour">-</string>
+    <string name="plus_hour">+</string>
     <string name="current_date">Current Date</string>
 </resources>

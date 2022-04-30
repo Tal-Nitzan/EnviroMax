@@ -8,7 +8,8 @@ enum DataType {
 }
 
 public class NormalizeData {
-    public static final int MIN_TEMP = 22;
+    // 23 ((23-22) / (28-22))
+    public static final int MIN_TEMP = 20;
     public static final int MAX_TEMP = 28;
 
     public static final int MIN_BAROMETER_PRESSURE = 950;

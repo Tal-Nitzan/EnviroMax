@@ -35,6 +35,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -56,17 +57,18 @@ import java.util.HashMap;
 import java.util.List;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
+@SuppressLint("UseSwitchCompatOrMaterialCode")
 public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMapReadyCallback {
 
     private GoogleMap m_googleMap;
-    private final boolean firstLocationUpdateFlag = false;
+    private HeatmapTileProvider m_mapProvider;
+    private float previousZoomLevel = -1.0f;
     private FusedLocationProviderClient fusedLocationClient;
     private DataType dataType;
     private FloatingActionButton currentButton;
     private ArrayList<TileOverlay> m_tilesOverlay;
     private ArrayList<MarkerOptions> m_markers;
     private final ArrayList<Marker> m_activeMarkers = new ArrayList<Marker>();
-    private final List<WeightedLatLng> m_weightedLatLngs = new ArrayList<WeightedLatLng>();
     private FloatingActionButton map_BTN_temp;
     private FloatingActionButton map_BTN_barPressure;
     private FloatingActionButton map_BTN_airPollution;
@@ -76,18 +78,16 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
     private TextView map_LBL_date;
     private int currentDate = 0;
 
-
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
     private Switch map_SWITCH_markers;
     private Toast toastMessage;
 
     private final int[] colors = {
-            Color.GREEN,    // green(0-50)
-            Color.YELLOW,    // yellow(51-100)
-            Color.rgb(255,165,0), //Orange(101-150)
-            Color.RED,              //red(151-200)
-            Color.rgb(153,50,204), //dark orchid(201-300)
-            Color.rgb(165,42,42) //brown(301-500)
+            MyColor.GREEN,
+            MyColor.YELLOW,
+            MyColor.Orange,
+            Color.RED,
+            MyColor.DarkOrchid,
+            MyColor.Brown
     };
 
     private final float[] startpoints = {
@@ -174,12 +174,10 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
 
         map_BTN_left.setOnClickListener(new View.OnClickListener() {
 
-            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
                 currentDate--;
                 leftRightButtonsEnabling();
-                Log.d("zzzz", "" + currentDate);
                 addHeatMapWeighted();
             }
         });
@@ -188,36 +186,13 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
 
         map_BTN_right.setOnClickListener(new View.OnClickListener() {
 
-            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
                 currentDate++;
                 leftRightButtonsEnabling();
-                Log.d("zzzz", "" + currentDate);
                 addHeatMapWeighted();
             }
         });
-
-
-//        map_SLIDER_daySlider.setLabelFormatter(new LabelFormatter() {
-//            @RequiresApi(api = Build.VERSION_CODES.O)
-//            @NonNull
-//            @Override
-//            public String getFormattedValue(float value) {
-//                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:00:00");
-//                LocalDateTime now = LocalDateTime.now().minusHours((long)value);
-//                return dtf.format(now);
-//            }
-//        });
-
-//        map_SLIDER_daySlider.addOnChangeListener(new Slider.OnChangeListener() {
-//            @SuppressLint("RestrictedApi")
-//            @Override
-//            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
-//                addHeatMapWeighted();
-//            }
-//        });
-//        map_SLIDER_daySlider.setEnabled(false);
 
         map_SWITCH_markers.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -298,31 +273,13 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
                         @Override
                         public void onSuccess(Location location) {
                             // Got last known location. In some rare situations this can be null.
-                            if (location != null) {
-                                m_googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13f));
-                            }
+                            m_googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13f));
                         }
                     });
         }
         setInfoWindowAdapter();
+        m_googleMap.setOnCameraChangeListener(getCameraChangeListener());
     }
-
-
-
-//    private void updateMarkers(int value) {
-//        if (m_activeMarkers.size() > 0) {
-//            setActiveMarkersInvisible();
-//        }
-//        if (value == 0) {
-//            return;
-//        }
-//        for (int i = value - 1; i <= FirebaseDB.IntensityEnum.HIGHEST.ordinal(); i++) {
-//            for (Marker marker : m_activeMarkers.get(FirebaseDB.IntensityEnum.fromInteger(i))) {
-//                Log.d("vvvv", "...");
-//                marker.setVisible(true);
-//            }
-//        }
-//    }
 
     private void showMarkers() {
         for (Marker marker : m_activeMarkers) {
@@ -384,12 +341,9 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         });
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public void addHeatMapWeighted() {
-        boolean isHeatMapLoaded = true;
         leftRightButtonsEnabling();
         map_SWITCH_markers.setEnabled(true);
-        m_weightedLatLngs.clear();
         updateDateLabel();
         FirebaseDB.CallBack_Data callBack = new FirebaseDB.CallBack_Data() {
             @Override
@@ -403,8 +357,9 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
                 for (WeightedLatLngAddress address : weights) {
                     weightedLatLngsArray.add(address.getWeightedLatLng());
                 }
-                HeatmapTileProvider provider = new HeatmapTileProvider.Builder().weightedData(weightedLatLngsArray).radius(45).gradient(gradient).build();
-                m_tilesOverlay.add(m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(provider)));
+                m_mapProvider = new HeatmapTileProvider.Builder().weightedData(weightedLatLngsArray).gradient(gradient).build();
+                changeRadiusBasedOnZoomLevel(m_googleMap.getCameraPosition().zoom);
+                m_tilesOverlay.add(m_googleMap.addTileOverlay(new TileOverlayOptions().tileProvider(m_mapProvider)));
 
                 m_markers = markers;
                 initMarkers();
@@ -420,14 +375,51 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
         }
     }
 
+    //TODO
+    public GoogleMap.OnCameraChangeListener getCameraChangeListener()
+    {
+        return new GoogleMap.OnCameraChangeListener()
+        {
+            @Override
+            public void onCameraChange(CameraPosition position)
+            {
+                if(previousZoomLevel != position.zoom)
+                { // min zoom = 3, max zoom = 21
+                    changeRadiusBasedOnZoomLevel(position.zoom);
+                }
+
+                previousZoomLevel = position.zoom;
+            }
+        };
+    }
+
+    private void changeRadiusBasedOnZoomLevel(float zoom) {
+        final int MIN_RADIUS = 5;
+        final int MAX_RADIUS = 50;
+        final int MIN_ZOOM = 3;
+        final int MAX_ZOOM = 21;
+        final int DIVIDER = 2;
+
+        if (m_mapProvider != null)
+            if (zoom >= 13f) {
+                int newRadius = (MAX_RADIUS * ((int)zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM))/DIVIDER + MIN_RADIUS;
+                m_mapProvider.setRadius(newRadius);
+            }
+            else {
+                m_mapProvider.setRadius(MIN_RADIUS);
+        }
+
+    }
+
     private void leftRightButtonsEnabling() {
         if (currentDate > 0)
             map_BTN_left.setEnabled(true);
         if (currentDate == 0)
             map_BTN_left.setEnabled(false);
-        if (currentDate < 71)
+        int NUM_HOURS = 72;
+        if (currentDate < NUM_HOURS -1)
             map_BTN_right.setEnabled(true);
-        if (currentDate == 71)
+        if (currentDate == NUM_HOURS -1)
             map_BTN_right.setEnabled(false);
     }
 
@@ -446,18 +438,18 @@ public class Fragment_Map extends androidx.fragment.app.Fragment implements OnMa
     }
 
     private void showSnackbarHeatMapLoaded(int id) {
-        if (toastMessage != null) {
-            toastMessage.cancel();
-        }
-        toastMessage = Toast.makeText(getActivity(), getText(id) + " HeatMap loaded!", Toast.LENGTH_LONG);
-        toastMessage.show();
+        showSnackbar(id, " HeatMap loaded!");
     }
 
     private void showSnackbarHeatMapAlreadyLoaded(int id) {
+        showSnackbar(id, " HeatMap already loaded!");
+    }
+
+    private void showSnackbar(int id, String addedMessage) {
         if (toastMessage != null) {
             toastMessage.cancel();
         }
-        toastMessage = Toast.makeText(getActivity(), getText(id) + " HeatMap already loaded!", Toast.LENGTH_LONG);
+        toastMessage = Toast.makeText(getActivity(), getText(id) + addedMessage, Toast.LENGTH_LONG);
         toastMessage.show();
     }
 }

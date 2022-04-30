@@ -10,13 +10,5 @@
             android:id="@+id/nav_map_fragment"
             android:icon="@drawable/map"
             android:title="Map" />
-        <item
-            android:id="@+id/nav_personalDetails_fragment"
-            android:icon="@drawable/personal_details"
-            android:title="Personal Details" />
-        <item
-            android:id="@+id/nav_logOut"
-            android:icon="@drawable/sign_out"
-            android:title="Log Out" />
     </group>
 </menu>
