@@ -39,7 +39,7 @@ public class FirebaseDB {
     }
 
     public interface CallBack_Data {
-        void dataReady(ArrayList<WeightedLatLngAddress> weights, ArrayList<MarkerOptions> markers);
+        void dataReady(ArrayList<WeightedLatLngAddress> weights, ArrayList<MarkerOptions> markers, boolean shouldShow);
     }
 
     public interface CallBack_Temperature extends CallBack_Data {
@@ -57,8 +57,8 @@ public class FirebaseDB {
     private final static String LAT = "lat";
     private final static String LNG = "lng";
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public void getData(final CallBack_Data callBack_data, DataType type, float hour) {
+
+    public void getData(final CallBack_Data callBack_data, DataType type, float hour, boolean shouldShow) {
         Thread thread = new Thread() {
             @Override
             public void run() {
@@ -84,8 +84,8 @@ public class FirebaseDB {
                             }
                         } catch (Exception ignored) {
                         }
-                        if (weights.size() > 0 && callBack_data != null) {
-                            callBack_data.dataReady(weights, markers);
+                        if (callBack_data != null) {
+                            callBack_data.dataReady(weights, markers, shouldShow);
                         }
                     }
 

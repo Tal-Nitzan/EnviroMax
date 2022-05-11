@@ -4,26 +4,37 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.util.Log;
 import android.view.MenuItem;
 
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 
-@RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
+
+//    private static final int PERMISSION_REGULAR_LOCATION_REQUEST_CODE = 133;
+//    private static final int PERMISSION_BACKGROUND_LOCATION_REQUEST_CODE = 134;
 
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
@@ -34,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
     private FragmentManager fm;
 
-    private ArrayList<Fragment> fragments = new ArrayList<Fragment>();
+//    private ArrayList<Fragment> fragments = new ArrayList<Fragment>();
 
     // Make sure to be using androidx.appcompat.app.ActionBarDrawerToggle version.
     private ActionBarDrawerToggle drawerToggle;
@@ -71,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
         innerBeginTransactions();
     }
+
 
     private void innerBeginTransactions() {
         fm.beginTransaction().add(R.id.flContent, fragment_map, "2").hide(fragment_map).commit();
@@ -125,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
     @SuppressLint("NonConstantResourceId")
     public void selectDrawerItem(MenuItem menuItem) { // TODO save state

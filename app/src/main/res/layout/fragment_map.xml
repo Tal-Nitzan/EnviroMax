@@ -99,7 +99,7 @@
                     android:paddingHorizontal="25dp"
                     android:textSize="15sp"
                     android:textStyle="bold"
-                    android:text="@string/current_date" />
+                    android:text="@string/date_placeholder" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/map_BTN_right"
