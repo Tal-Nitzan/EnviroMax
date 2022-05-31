@@ -9,6 +9,7 @@ import com.google.maps.android.heatmaps.WeightedLatLng;
 import java.io.IOException;
 import java.util.Locale;
 
+// Wrapper class for WeightedLatLng to store the address of the point for the map.
 public class WeightedLatLngAddress implements Comparable<WeightedLatLngAddress> {
     WeightedLatLng weightedLatLng;
     String address;

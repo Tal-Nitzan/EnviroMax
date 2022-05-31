@@ -29,4 +29,11 @@
     <string name="minus_hour">-1H</string>
     <string name="plus_hour">+1H</string>
     <string name="date_placeholder">\t\t\t\t\t\t\t\t\t\t\t</string>
+    <string name="Temperature_info">Shows the current temperature by Celsius</string>
+    <string name="Barometer_info">Shows the value of the barometer pressure in the location.\nValues varies from 950 to 1100.</string>
+    <string name="Pollution_info">Shows the value of the air pollution in the location.\nValues varies from 37000 to 45000.</string>
+    <string name="Humidity_info">Shows the value of the humidity in the location.\nValues varies from 35 to 42.</string>
+    <string name="Main_intro">Our app delivers environmental data 24/7 that is reachable from the palm of your hand all the time - ANY TIME!\n\nHere is all the data currently available:</string>
+    <string name="Main_motivation_intro">Are you ready to change the world with us?</string>
+    <string name="Welcome_home_frag">Welcome to EnviroMax!</string>
 </resources>

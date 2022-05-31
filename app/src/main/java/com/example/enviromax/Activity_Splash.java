@@ -25,8 +25,11 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class Activity_Splash extends AppCompatActivity {
 
+    // Permissions vars
     private static final int PERMISSION_REGULAR_LOCATION_REQUEST_CODE = 133;
     private static final int PERMISSION_BACKGROUND_LOCATION_REQUEST_CODE = 134;
+
+    // Animation objects
     private final static int ANIMATION_DURATION = 2000;
     private ImageView splash_IMG_logo;
     private MaterialButton splash_BTN_start;
@@ -56,8 +59,8 @@ public class Activity_Splash extends AppCompatActivity {
         splash_BTN_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-//                FirebaseUser user = firebaseAuth.getCurrentUser();
+                FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+                FirebaseUser user = firebaseAuth.getCurrentUser();
                 Intent myIntent = new Intent(Activity_Splash.this, MainActivity.class);;
                 startActivity(myIntent);
                 finish();

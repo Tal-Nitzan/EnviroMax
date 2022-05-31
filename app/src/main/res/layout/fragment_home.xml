@@ -19,7 +19,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Welcome to EnviroMax!"
+            android:text="@string/Welcome_home_frag"
             android:layout_marginTop="20dp"
             android:textSize="30sp"
             android:layout_gravity="center_horizontal"/>
@@ -28,7 +28,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Are you ready to change the world with us?"
+            android:text="@string/Main_motivation_intro"
             android:layout_marginTop="20dp"
             android:textSize="18sp"
             android:layout_gravity="center_horizontal"/>
@@ -36,10 +36,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Our app delivers environmental data 24/7 that is reachable from the palm of your hand all the time - ANY TIME!\n\nHere is all the data currently available:"
+            android:text="@string/Main_intro"
             android:textSize="15sp"
             android:layout_marginTop="15dp"
-            android:layout_marginLeft="15dp"
+            android:layout_marginStart="15dp"
             android:layout_gravity="center_horizontal"/>
 
         <LinearLayout
@@ -77,7 +77,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12sp"
-                        android:text="Here we detail about the Temperature"/>
+                        android:text="@string/Temperature_info"/>
 
                 </LinearLayout>
 
@@ -111,7 +111,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12sp"
-                        android:text="Here we detail about the Barometer Pressure"/>
+                        android:text="@string/Barometer_info"/>
 
                 </LinearLayout>
 
@@ -145,7 +145,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="12sp"
-                        android:text="Here we detail about the Air Pollution"/>
+                        android:text="@string/Pollution_info"/>
 
                 </LinearLayout>
 
@@ -178,8 +178,8 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="12sp"
-                        android:text="Here we detail about the Humidity"/>
+                        android:text="@string/Humidity_info"
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 

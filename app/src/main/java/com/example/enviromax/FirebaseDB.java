@@ -29,7 +29,9 @@ import java.util.List;
 
 public class FirebaseDB {
 
+    // Db reference to gain access
     private final DatabaseReference m_DatabaseReference;
+
     private final Context m_context;
 
     public FirebaseDB(Context context) {
@@ -39,7 +41,7 @@ public class FirebaseDB {
     }
 
     public interface CallBack_Data {
-        void dataReady(ArrayList<WeightedLatLngAddress> weights, ArrayList<MarkerOptions> markers, boolean shouldShow);
+        void dataReady(ArrayList<WeightedLatLngAddress> weights, ArrayList<MarkerOptions> markers, boolean shouldShowToastModeChanged);
     }
 
     public interface CallBack_Temperature extends CallBack_Data {
@@ -58,43 +60,45 @@ public class FirebaseDB {
     private final static String LNG = "lng";
 
 
-    public void getData(final CallBack_Data callBack_data, DataType type, float hour, boolean shouldShow) {
-        Thread thread = new Thread() {
+    public void getData(final CallBack_Data callBack_data, DataType type, float hour, boolean shouldShowToastModeChanged) {
+        m_DatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void run() {
-                m_DatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        ArrayList<WeightedLatLngAddress> weights = new ArrayList<WeightedLatLngAddress>();
-                        ArrayList<MarkerOptions> markers = new ArrayList<MarkerOptions>();
-                        try {
-                            for (DataSnapshot rpiSnapshot : snapshot.child("Devices").getChildren()) {
-                                String rpiName = rpiSnapshot.getKey().toString();
-                                LatLng latLng = new LatLng(snapshot.child("Devices").child(rpiName).child("location").child(LAT).getValue(double.class), snapshot.child("Devices").child(rpiName).child("location").child(LNG).getValue(double.class));
-                                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("ddMMyyyyHH");
-                                LocalDateTime theDate = LocalDateTime.now().minusHours((long)hour);
-                                String assembleDate = dtf.format(theDate);
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                ArrayList<WeightedLatLngAddress> weights = new ArrayList<WeightedLatLngAddress>();
+                ArrayList<MarkerOptions> markers = new ArrayList<MarkerOptions>();
 
-                                double valueFromDb = snapshot.child("data").child(assembleDate).child(rpiName).child(type.toString()).getValue(double.class);
+                try {
+                    // Current data to fetch from DB
+                    String currentData = type.toString();
+                    Log.d("zzzz", "Trying to get " + currentData + " data");
 
-                                WeightedLatLngAddress weightedAddress = new WeightedLatLngAddress(m_context, latLng, NormalizeData.normalizeData(type, valueFromDb));
+                    // Asked date
+                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("ddMMyyyyHH");
+                    LocalDateTime theDate = LocalDateTime.now().minusHours((long)hour);
+                    String assembleDate = dtf.format(theDate);
 
-                                weights.add(weightedAddress);
-                                markers.add(new MarkerOptions().position(latLng).title(type.toString()).snippet("Address = " + weightedAddress.getAddress() + "\n" + "Current = " + String.format("%.2f", valueFromDb)));
-                            }
-                        } catch (Exception ignored) {
-                        }
-                        if (callBack_data != null) {
-                            callBack_data.dataReady(weights, markers, shouldShow);
-                        }
+                    for (DataSnapshot rpiSnapshot : snapshot.child("Devices").getChildren()) {
+
+                        String rpiName = rpiSnapshot.getKey().toString();
+                        LatLng latLng = new LatLng(snapshot.child("Devices").child(rpiName).child("location").child(LAT).getValue(double.class), snapshot.child("Devices").child(rpiName).child("location").child(LNG).getValue(double.class));
+
+                        double valueFromDb = snapshot.child("data").child(assembleDate).child(rpiName).child(currentData).getValue(double.class);
+
+                        WeightedLatLngAddress weightedAddress = new WeightedLatLngAddress(m_context, latLng, NormalizeData.normalizeData(type, valueFromDb));
+                        weights.add(weightedAddress);
+
+                        markers.add(new MarkerOptions().position(latLng).title(currentData).snippet("Address = " + weightedAddress.getAddress() + "\n" + "Current = " + String.format("%.2f", valueFromDb)));
                     }
+                } catch (Exception ignored) {}
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                    }
-                });
+                if (callBack_data != null) {
+                    callBack_data.dataReady(weights, markers, shouldShowToastModeChanged);
+                }
             }
-        };
-        thread.start();
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
     }
 }

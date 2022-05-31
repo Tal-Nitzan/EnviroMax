@@ -72,49 +72,61 @@
 
             </LinearLayout>
 
-
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/map_BTN_left"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textStyle="bold"
-                    android:text="@string/plus_hour"
-                    android:textColor="@color/dark_gray"
-                    android:textSize="20sp"
-                    app:cornerRadius="50dp"
-                    app:iconTint="@color/dark_gray"
-                    app:strokeColor="@color/dark_gray" />
+                    android:layout_gravity="center_horizontal"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/map_BTN_left"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:text="@string/plus_hour"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="20sp"
+                        app:cornerRadius="50dp"
+                        app:iconTint="@color/dark_gray"
+                        app:strokeColor="@color/dark_gray" />
+
+                    <TextView
+                        android:id="@+id/map_LBL_date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="25dp"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:text="@string/date_placeholder" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/map_BTN_right"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/minus_hour"
+                        android:textStyle="bold"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="20sp"
+                        app:cornerRadius="50dp"
+                        app:iconTint="@color/dark_gray"
+                        app:strokeColor="@color/dark_gray" />
+
+                </LinearLayout>
 
                 <TextView
-                    android:id="@+id/map_LBL_date"
+                    android:id="@+id/map_LBL_currentData"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="25dp"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:text="@string/date_placeholder" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/map_BTN_right"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/minus_hour"
-                    android:textStyle="bold"
-                    android:textColor="@color/dark_gray"
-                    android:textSize="20sp"
-                    app:cornerRadius="50dp"
-                    app:iconTint="@color/dark_gray"
-                    app:strokeColor="@color/dark_gray" />
-
-            </LinearLayout>
+                    android:layout_gravity="center_horizontal"/>
+        </LinearLayout>
 
         </LinearLayout>
 

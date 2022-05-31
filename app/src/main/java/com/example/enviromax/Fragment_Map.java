@@ -46,32 +46,15 @@ import java.util.ArrayList;
 @SuppressLint("UseSwitchCompatOrMaterialCode")
 public class Fragment_Map extends Fragment implements OnMapReadyCallback {
 
-    private GoogleMap m_googleMap;
-    private HeatmapTileProvider m_mapProvider;
-    private float previousZoomLevel = -1.0f;
-    private FusedLocationProviderClient fusedLocationClient;
-    private DataType dataType;
-    private FloatingActionButton currentButton;
-    private ArrayList<TileOverlay> m_tilesOverlay;
-    private ArrayList<MarkerOptions> m_markers;
-    private final ArrayList<Marker> m_activeMarkers = new ArrayList<Marker>();
-    private FloatingActionButton map_BTN_temp;
-    private FloatingActionButton map_BTN_barPressure;
-    private FloatingActionButton map_BTN_airPollution;
-    private FloatingActionButton map_BTN_Humidity;
-    private MaterialButton map_BTN_left;
-    private MaterialButton map_BTN_right;
-    private TextView map_LBL_date;
-    private int currentDate = 0;
-    private Switch map_SWITCH_markers;
-    private Toast toastMessage;
-    private int MAX_HOURS = 72;
+    // Consts
+    private final int DECREASE = -1;
+    private final int INCREASE = 1;
 
     private final int[] colors = {
             MyColor.GREEN,
             MyColor.YELLOW,
             MyColor.Orange,
-            Color.RED,
+            MyColor.RED,
             MyColor.DarkOrchid,
             MyColor.Brown
     };
@@ -80,16 +63,33 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
             0.1F, 0.2F, 0.3F, 0.4F, 0.6F, 1.0F
     };
 
-    private void findViews() {
-        map_BTN_temp = getView().findViewById(R.id.map_BTN_temp);
-        map_BTN_barPressure = getView().findViewById(R.id.map_BTN_barPressure);
-        map_BTN_airPollution = getView().findViewById(R.id.map_BTN_airPollution);
-        map_BTN_Humidity = getView().findViewById(R.id.map_BTN_Humidity);
-        map_SWITCH_markers = getView().findViewById(R.id.map_SWITCH_markers);
-        map_LBL_date = getView().findViewById(R.id.map_LBL_date);
-        map_BTN_left = getView().findViewById(R.id.map_BTN_left);
-        map_BTN_right = getView().findViewById(R.id.map_BTN_right);
-    }
+    // Map vars
+    private GoogleMap m_googleMap;
+    private HeatmapTileProvider m_mapProvider;
+    private FusedLocationProviderClient fusedLocationClient;
+    private ArrayList<TileOverlay> m_tilesOverlay;
+    private ArrayList<MarkerOptions> m_markers;
+    private final ArrayList<Marker> m_activeMarkers = new ArrayList<Marker>();
+
+    // Layout vars
+    private FloatingActionButton map_BTN_temp;
+    private FloatingActionButton map_BTN_barPressure;
+    private FloatingActionButton map_BTN_airPollution;
+    private FloatingActionButton map_BTN_Humidity;
+    private MaterialButton map_BTN_left;
+    private MaterialButton map_BTN_right;
+    private TextView map_LBL_date;
+    private TextView map_LBL_currentData;
+    private Switch map_SWITCH_markers;
+
+    // UI vars
+    private Toast m_toastMessage;
+
+    // State vars
+    private float m_previousZoomLevel = -1.0f;
+    private DataType m_dataType;
+    private FloatingActionButton m_currentButton;
+    private int m_currentDate = 0;
 
     @Nullable
     @Override
@@ -126,6 +126,20 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
         super.onSaveInstanceState(outState);
     }
 
+    // Find all UI views
+    private void findViews() {
+        map_BTN_temp = getView().findViewById(R.id.map_BTN_temp);
+        map_BTN_barPressure = getView().findViewById(R.id.map_BTN_barPressure);
+        map_BTN_airPollution = getView().findViewById(R.id.map_BTN_airPollution);
+        map_BTN_Humidity = getView().findViewById(R.id.map_BTN_Humidity);
+        map_SWITCH_markers = getView().findViewById(R.id.map_SWITCH_markers);
+        map_LBL_date = getView().findViewById(R.id.map_LBL_date);
+        map_LBL_currentData = getView().findViewById(R.id.map_LBL_currentData);
+        map_BTN_left = getView().findViewById(R.id.map_BTN_left);
+        map_BTN_right = getView().findViewById(R.id.map_BTN_right);
+    }
+
+    // Init all UI views
     private void initViews() {
         map_BTN_temp.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -156,26 +170,28 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
         });
 
 
-        disableMaterialButton(map_BTN_left);
+        shouldEnableMaterialButton(false, map_BTN_left, Color.LTGRAY);
 
         map_BTN_left.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                currentDate--;
-                leftRightButtonsEnabling();
+                changeDate(DECREASE);
+                leftRightButtonsEnablingManager();
+                removeHeatMapMarkers();
                 addHeatMapWeighted(false);
             }
         });
 
-        disableMaterialButton(map_BTN_right);
+        shouldEnableMaterialButton(false, map_BTN_right, Color.LTGRAY);
 
         map_BTN_right.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                currentDate++;
-                leftRightButtonsEnabling();
+                changeDate(INCREASE);
+                leftRightButtonsEnablingManager();
+                removeHeatMapMarkers();
                 addHeatMapWeighted(false);
             }
         });
@@ -184,9 +200,9 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    showMarkers();
+                    showMarkers(true);
                 } else {
-                    setActiveMarkersInvisible();
+                    showMarkers(false);
                 }
             }
         });
@@ -194,46 +210,56 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
         map_SWITCH_markers.setEnabled(false);
     }
 
+    // Function helper for setting up different datatype buttons from UI
     public void setOnClickForBtn(DataType type, FloatingActionButton button) {
         Context context;
         Resources.Theme theme;
-        if (dataType == type) {
+        if (m_dataType == type) {
             showToastHeatMapAlreadyLoaded(type);
             return;
         }
-        else if (dataType != null) { // It is something else, should remove the current tile.
+        else if (m_dataType != null) { // It is something else, should remove the current tile.
             removeHeatMapMarkers();
             context = getContext();
             if (context != null) {
                 theme = context.getTheme();
-                currentButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.teal_200, theme)));
+                m_currentButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.teal_200, theme)));
             }
         }
-        addHeatMapWeighted(true);
+        setCurrentDataType(type);
+        setCurrentText();
+        updateDateLabel();
         setCurrentButton(button);
+
+        addHeatMapWeighted(true);
+
         if (getContext() != null) {
             if (getContext().getTheme() != null) {
-                currentButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.purple_200, getContext().getTheme())));
+                m_currentButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.purple_200, getContext().getTheme())));
             }
         }
-        setCurrentDataType(dataType);
+    }
+
+    private void setCurrentText() {
+        map_LBL_currentData.setText(m_dataType.toString());
     }
 
     private void setCurrentButton(FloatingActionButton button) {
-        currentButton = button;
+        m_currentButton = button;
     }
 
     private void setCurrentDataType(DataType type) {
-        dataType = type;
+        m_dataType = type;
     }
 
-    private void addHeatMapWeighted(boolean shouldShow) {
-        removeHeatMapMarkers();
-        updateDateLabel();
-        leftRightButtonsEnabling();
+    // Function gets called when fetching data from database.
+    // Inside - A callback is being registered to the FirebaseDb class to call
+    // when the data is ready to get loaded to the heatmap
+    private void addHeatMapWeighted(boolean shouldShowToastModeChanged) {
+        leftRightButtonsEnablingManager();
         FirebaseDB.CallBack_Data callBack = new FirebaseDB.CallBack_Data() {
             @Override
-            public void dataReady(ArrayList<WeightedLatLngAddress> weights, ArrayList<MarkerOptions> markers, boolean shouldShow) {
+            public void dataReady(ArrayList<WeightedLatLngAddress> weights, ArrayList<MarkerOptions> markers, boolean shouldShowToastModeChanged) {
                 if (weights.size() == 0 && markers.size() == 0) {
                     setMarkers(false);
                     showToast("There are no available data for that date and time on the system.", Toast.LENGTH_SHORT);
@@ -250,40 +276,42 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
                 m_markers = markers;
                 initMarkers();
                 if (map_SWITCH_markers.isChecked()) {
-                    showMarkers();
+                    showMarkers(true);
                 }
                 setMarkers(true);
-                if (shouldShow) {
-                    showToastHeatMapLoaded(dataType);
+                if (shouldShowToastModeChanged) {
+                    showToastHeatMapLoaded(m_dataType);
                 }
                 else {
                     showToast("HeatMap loaded!", Toast.LENGTH_SHORT);
                 }
             }
-            private void poo() {
-
-            }
         };
         try {
-            new FirebaseDB(getActivity()).getData(callBack, dataType, currentDate, shouldShow);
+            new FirebaseDB(getActivity()).getData(callBack, m_dataType, m_currentDate, shouldShowToastModeChanged);
         } catch (Exception e) {
             showToast("Unable to read heatmap locations from database!", Toast.LENGTH_LONG);
         }
     }
 
+    // Set markers based on user choice from UI
     private void setMarkers(boolean shouldSet) {
+        if (!shouldSet)
+            removeMarkers();
         map_SWITCH_markers.setEnabled(shouldSet);
     }
 
-    private void removeHeatMapMarkers() {
+    // Set m_googleMap member when map is ready (API function call)
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        m_googleMap = googleMap;
+        m_googleMap.getUiSettings().setZoomControlsEnabled(true);
         try {
-            removeHeatMap();
-            removeMarkers();
-        } catch (Exception ex) {
-            showToast("Unable to remove HeatMap and Markers", Toast.LENGTH_SHORT);
-        }
+            focusCurrentLocation();
+        } catch (Exception ignored) { }
     }
 
+    // Focus on current location after map is ready.
     @SuppressLint("MissingPermission")
     public void focusCurrentLocation() {
         m_googleMap.setMyLocationEnabled(true);
@@ -304,30 +332,14 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
         m_googleMap.setOnCameraChangeListener(getCameraChangeListener());
     }
 
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        m_googleMap = googleMap;
-        m_googleMap.getUiSettings().setZoomControlsEnabled(true);
-        try {
-            focusCurrentLocation();
-        } catch (Exception ignored) { }
-    }
-
-
-    private void showMarkers() {
+    // Set markers visible/invisible
+    private void showMarkers(boolean shouldShow) {
         for (Marker marker : m_activeMarkers) {
-            marker.setVisible(true);
+            marker.setVisible(shouldShow);
         }
     }
 
-
-    private void setActiveMarkersInvisible() {
-        for (Marker marker : m_activeMarkers) {
-            marker.setVisible(false);
-        }
-    }
-
+    // Init loaded markers to the heat map
     private void initMarkers() {
         for (MarkerOptions _marker : m_markers) {
             Marker marker = m_googleMap.addMarker(_marker);
@@ -336,13 +348,33 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    private void removeHeatMapMarkers() {
+        try {
+            removeHeatMap();
+            removeMarkers();
+        } catch (Exception ex) {
+            showToast("Unable to remove HeatMap and Markers", Toast.LENGTH_SHORT);
+        }
+    }
+
+    // Remove heatmap from tile overlay
+    private void removeHeatMap() {
+        for (TileOverlay overlay : m_tilesOverlay) {
+            overlay.remove();
+        }
+        m_tilesOverlay.clear();
+    }
+
+    // Remove all active markers from the heatmap
     private void removeMarkers() {
         for (Marker marker : m_activeMarkers) {
             marker.remove();
         }
         m_activeMarkers.clear();
+        m_markers.clear();
     }
 
+    // Window adapter for google map UI
     private void setInfoWindowAdapter() {
         m_googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
 
@@ -375,7 +407,8 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
         });
     }
 
-    //TODO
+    // Listener on the map zoom level to dynamically change the radius of the heatmap
+    // points based on zoom level.
     private GoogleMap.OnCameraChangeListener getCameraChangeListener()
     {
         return new GoogleMap.OnCameraChangeListener()
@@ -383,16 +416,17 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
             @Override
             public void onCameraChange(CameraPosition position)
             {
-                if(previousZoomLevel != position.zoom)
+                if(m_previousZoomLevel != position.zoom)
                 { // min zoom = 3, max zoom = 21
                     changeRadiusBasedOnZoomLevel(position.zoom);
                 }
 
-                previousZoomLevel = position.zoom;
+                m_previousZoomLevel = position.zoom;
             }
         };
     }
 
+    // Dynamically change radius of heatmap points based on user choosing of zoom level
     private void changeRadiusBasedOnZoomLevel(float zoom) {
         final int MIN_RADIUS = 5;
         final int MAX_RADIUS = 50;
@@ -411,69 +445,68 @@ public class Fragment_Map extends Fragment implements OnMapReadyCallback {
 
     }
 
-    private void leftRightButtonsEnabling() {
-        if (currentDate > 0) {
-            enableMaterialButton(map_BTN_left);
+    private void leftRightButtonsEnablingManager() {
+        if (m_currentDate > 0) {
+            shouldEnableMaterialButton(true, map_BTN_left, Color.BLACK);
         }
-        if (currentDate == 0) {
-            disableMaterialButton(map_BTN_left);
+        if (m_currentDate == 0) {
+            shouldEnableMaterialButton(false, map_BTN_left, Color.LTGRAY);
         }
-        if (currentDate < MAX_HOURS -1) {
-            enableMaterialButton(map_BTN_right);
+        int MAX_HOURS = 72;
+        if (m_currentDate < MAX_HOURS -1) {
+            shouldEnableMaterialButton(true, map_BTN_right, Color.BLACK);
         }
-        if (currentDate == MAX_HOURS -1) {
-            disableMaterialButton(map_BTN_right);
+        if (m_currentDate == MAX_HOURS -1) {
+            shouldEnableMaterialButton(false, map_BTN_right, Color.LTGRAY);
         }
 
     }
 
-    private void disableMaterialButton(MaterialButton button) {
-        int color = Color.LTGRAY;
+    // Generic class to enable/disable material button and set its color
+    private void shouldEnableMaterialButton(boolean enable, MaterialButton button, int color) {
         button.setRippleColor(ColorStateList.valueOf(color));
         button.setStrokeColor(ColorStateList.valueOf(color));
         button.setTextColor(ColorStateList.valueOf(color));
-        button.setEnabled(false);
+        button.setEnabled(enable);
     }
 
-    private void enableMaterialButton(MaterialButton button) {
-        int color = Color.BLACK;
-        button.setRippleColor(ColorStateList.valueOf(color));
-        button.setStrokeColor(ColorStateList.valueOf(color));
-        button.setTextColor(ColorStateList.valueOf(color));
-        button.setEnabled(true);
-    }
-
+    // Update date label by the user choosing.
     private void updateDateLabel()
     {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:00");
-        LocalDateTime now = LocalDateTime.now().minusHours(currentDate);
+        LocalDateTime now = LocalDateTime.now().minusHours(m_currentDate);
         map_LBL_date.setText(dtf.format(now));
     }
 
-    private void removeHeatMap() {
-        for (TileOverlay overlay : m_tilesOverlay) {
-            overlay.remove();
-        }
-        m_tilesOverlay.clear();
-    }
-
+    // Toast helper wrapper
     private void showToastHeatMapLoaded(DataType type) {
-        showToastForTypeName(type.toString(), " HeatMap loaded!");
+        showToastForTypeName(type.toString(), " HeatMap successfully loaded!");
     }
 
+    // Toast helper wrapper
     private void showToastHeatMapAlreadyLoaded(DataType type) {
         showToastForTypeName(type.toString(), " HeatMap already loaded!");
     }
 
+    // Toast helper wrapper
     private void showToastForTypeName(String typeName, String addedMessage) {
         showToast(typeName + addedMessage, Toast.LENGTH_SHORT);
     }
 
+    // Wrapper fucntion to show toasts of the current data loaded to the map.
+    // We work with a single toast object so the current view will get run
+    // over by the most current toast.
     private void showToast(String addedMessage, int length) {
-        if (toastMessage != null) {
-            toastMessage.cancel();
+        if (m_toastMessage != null) {
+            m_toastMessage.cancel();
         }
-        toastMessage = Toast.makeText(getActivity(), addedMessage, length);
-        toastMessage.show();
+        m_toastMessage = Toast.makeText(getActivity(), addedMessage, length);
+        m_toastMessage.show();
+    }
+
+    // Change the date for the UI view of current date's data
+    private void changeDate(int numHours) {
+        m_currentDate += numHours;
+        updateDateLabel();
     }
 }

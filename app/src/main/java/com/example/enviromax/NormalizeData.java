@@ -1,5 +1,6 @@
 package com.example.enviromax;
 
+// Enum state for different type of data from raspberry pi
 enum DataType {
     Temperature,
     Pressure,
@@ -7,17 +8,24 @@ enum DataType {
     Humidity
 }
 
+// Class to take care of normalizing the data that comes from raspberry pi
+// as google heatmap api requires the data to be a floating point between 0.00-1.00
+// in order to scale the points on the heatmap
 public class NormalizeData {
-    // 23 ((23-22) / (28-22))
+
+    // Temp
     public static final int MIN_TEMP = 20;
     public static final int MAX_TEMP = 28;
 
+    // Barometer pressure
     public static final int MIN_BAROMETER_PRESSURE = 950;
     public static final int MAX_BAROMETER_PRESSURE = 1100;
 
+    // Air pollution
     public static final int MIN_AIR_POLLUTION = 37000;
     public static final int MAX_AIR_POLLUTION = 45000;
 
+    // Humidity
     public static final int MIN_HUMIDITY = 35;
     public static final int MAX_HUMIDITY = 42;
 

@@ -1,53 +1,35 @@
 package com.example.enviromax;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
-import android.util.Log;
 import android.view.MenuItem;
 
 import com.google.android.material.navigation.NavigationView;
 
-import java.util.ArrayList;
-
 public class MainActivity extends AppCompatActivity {
 
-//    private static final int PERMISSION_REGULAR_LOCATION_REQUEST_CODE = 133;
-//    private static final int PERMISSION_BACKGROUND_LOCATION_REQUEST_CODE = 134;
-
+    // Drawer management
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
 
-    private Fragment currentFragment;
-    private Fragment_Home fragment_home;
-    private Fragment_Map fragment_map;
-
+    // Fragment management
     private FragmentManager fm;
+    private Fragment currentFragment;
+    private Fragment_Home fragmentHome;
+    private Fragment_Map fragmentMap;
 
-//    private ArrayList<Fragment> fragments = new ArrayList<Fragment>();
-
-    // Make sure to be using androidx.appcompat.app.ActionBarDrawerToggle version.
     private ActionBarDrawerToggle drawerToggle;
 
     @Override
@@ -58,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Set a Toolbar to replace the ActionBar.
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // This will display an Up icon (<-), we will replace it with hamburger later
@@ -68,25 +50,25 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Find our drawer view
-        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawer = findViewById(R.id.drawer_layout);
         drawerToggle = setupDrawerToggle();
-        NavigationView nvDrawer = (NavigationView) findViewById(R.id.nvView);
+        NavigationView nvDrawer = findViewById(R.id.nvView);
 
         // Setup drawer view
         setupDrawerContent(nvDrawer);
 
         fm = getSupportFragmentManager();
-        fragment_home = new Fragment_Home();
-        fragment_map = new Fragment_Map();
-        currentFragment = fragment_home;
+        fragmentHome = new Fragment_Home();
+        fragmentMap = new Fragment_Map();
+        currentFragment = fragmentHome;
 
         innerBeginTransactions();
     }
 
 
     private void innerBeginTransactions() {
-        fm.beginTransaction().add(R.id.flContent, fragment_map, "2").hide(fragment_map).commit();
-        fm.beginTransaction().add(R.id.flContent, fragment_home, "1").commit();
+        fm.beginTransaction().add(R.id.flContent, fragmentMap, "2").hide(fragmentMap).commit();
+        fm.beginTransaction().add(R.id.flContent, fragmentHome, "1").commit();
     }
 
     @Override
@@ -140,19 +122,19 @@ public class MainActivity extends AppCompatActivity {
 
 
     @SuppressLint("NonConstantResourceId")
-    public void selectDrawerItem(MenuItem menuItem) { // TODO save state
+    public void selectDrawerItem(MenuItem menuItem) {
+
         switch(menuItem.getItemId()) {
             case R.id.nav_home_fragment:
-                fm.beginTransaction().hide(currentFragment).show(fragment_home).commit();
+                fm.beginTransaction().hide(currentFragment).show(fragmentHome).commit();
                 break;
-
             case R.id.nav_map_fragment:
-                fm.beginTransaction().hide(currentFragment).show(fragment_map).commit();
+                fm.beginTransaction().hide(currentFragment).show(fragmentMap).commit();
                 break;
-
             default:
                 return;
         }
+
         mDrawer.closeDrawers();
     }
 
